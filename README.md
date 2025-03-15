@@ -10,5 +10,6 @@ The new module "APT" allows for higher efficiency, simplicity and customizabilit
 - high number of already implemented Reconnaissance and Discovery steps
 - easily extendable with new exploit types by extending the abstract class ExploitStep and implementing the required abstract methods
 - dinamically configurable by allowing to chain the steps in different ways, to repeat each step and the entire attack any number of times.
-- presence of special steps like the PauseStep or the DistributedExploit which allow for further customization of the attack paths <br>
+- presence of special steps like the PauseStep or the DistributedExploit which allow for further customization of the attack paths
+<! -- -->
 For more information see the APT.py file and the usage showcase in example_APT_usage.py
