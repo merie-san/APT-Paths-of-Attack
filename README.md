@@ -4,7 +4,7 @@ Thesis' Supervisors: prof. Andrea Ceccarelli, Tommaso Puccetti. <br>
 Note: some attack scripts like the qos_mid_dos.py were not finished. <br>
 For more information see the main pdf file on the thesis.
 ## Updates
-Updated and added new scripts for the paper "create and use a representative dataset for APT detection" in "new_src" folder <br>
+Updated and added new scripts for the paper "create and use a representative dataset for APT detection" in "new_src" folder. <br>
 The new module "APT" allows for higher efficiency, simplicity and customizability when building and running APT attacks: <br>
 - APT allows you to define new tipes of Reconnaissance and Discovery steps dinamically by creating RecStep and DiscStep objects
 - high number of already implemented Reconnaissance and Discovery steps
