@@ -12,9 +12,9 @@ class Daemon:
     def __init__(self, process: sp.Popen = None):
         self.daemon = process
 
-    def terminate(self):
+    def end(self):
         if self.daemon:
-            daemon.terminate()
+            self.daemon.terminate()
 
 
 def get_valid_users(metasploit_output):
@@ -164,7 +164,7 @@ def crack_ssh_password(targets, attack_type, daemon_obj):
             client = MsfRpcClient('10000', ssl=True)
         except Exception as err2:
             print(f"unexpected error: {err2}")
-            daemon_obj.terminate()
+            daemon_obj.end()
             return
 
         # we set the module, the target of the attack, the usernames to test with etc...
@@ -206,7 +206,7 @@ def crack_ssh_password(targets, attack_type, daemon_obj):
                 print(errs)
                 log.write(errs)
         client.logout()
-    daemon_obj.terminate()
+    daemon_obj.end()
 
 
 if __name__ == '__main__':
@@ -224,7 +224,7 @@ if __name__ == '__main__':
     try:
         main(args.distributed, daemon, args.action, args.host)
     except KeyboardInterrupt:
-        daemon.terminate()
+        daemon.end()
     except Exception as err:
         print(f"unexpected error: {err}")
-        daemon.terminate()
+        daemon.end()
