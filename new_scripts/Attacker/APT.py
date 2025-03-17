@@ -294,7 +294,7 @@ class ScpExfiltrateStep(ExploitStep):
     """Exfiltrate data from a specified host to the local filesystem"""
 
     def __init__(self, hostname: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", src_file: str = "/to_be_exfiltrated_sub", dest_file="./exfiltrated_data",
+                 ssh_password: str = "maint", src_file: str = "/to_be_exfiltrated", dest_file="./exfiltrated_data",
                  timeout: float = 60, pause: float = 1):
         super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
         self.src_file = src_file

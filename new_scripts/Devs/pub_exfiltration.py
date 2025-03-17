@@ -53,7 +53,7 @@ def main(username, password, topics, duration=10):
     while elapsed_time < duration:
         time.sleep(10)
         with data_dict["lock"]:
-            with open("/to_be_exfiltrated", "a") as f:
+            with open("/to_be_exfiltrated_pub", "a") as f:
                 f.write(data_dict["messages"])
             data_dict["messages"] = ""
         elapsed_time = time.time() - start_time

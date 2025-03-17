@@ -1,13 +1,8 @@
 import time
-import sys
 import paho.mqtt.client as mqtt
-import pyshark
 import subprocess
-import os
 import zipfile
 import json
-from paho.mqtt.properties import Properties
-from paho.mqtt.packettypes import PacketTypes
 import mqtt_utilities as util
 
 # MQTT Broker Details
