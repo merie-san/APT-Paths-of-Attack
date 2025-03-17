@@ -52,16 +52,14 @@ class APTStep(ABC):
 
     def _build_results(self, step_number: int, attack_name: str, start_time: datetime,
                        iteration: int) -> Dict:
-        end_time = datetime.now(tz=pytz.UTC)
-        step_name = self.get_step_name()
         return {
             "phase_number": self.get_phase().value,
             "step_number": step_number,
             "attack_name": attack_name,
             "phase_name": self.get_phase().name,
             "start_time": start_time,
-            "end_time": end_time,
-            "command": step_name,
+            "end_time": datetime.now(tz=pytz.UTC),
+            "command": self.get_step_name(),
             "iteration": iteration,
         }
 
@@ -73,7 +71,7 @@ class PauseStep(APTStep):
         super().__init__(None)
         if pause < 0:
             raise ValueError("Pause must be a positive float")
-        self.log_pause = pause
+        self.long_pause = pause
 
     def get_step_name(self) -> str:
         return "pause"
@@ -83,12 +81,12 @@ class PauseStep(APTStep):
 
     def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
         print("Pausing execution...")
-        time.sleep(random.random() * self.log_pause)
+        time.sleep(random.random() * self.long_pause)
         return [{}]
 
 
 class DiscStep(APTStep):
-    """Python class for Discovery steps, it allows to build custom discovery steps"""
+    """Python class for Discovery steps, it allows to build custom discovery steps by providing corresponding commands"""
 
     def __init__(self, hostname: str, commands: str, ssh_username: str = "ope", ssh_password: str = "maint",
                  pause: float = 1) -> None:
@@ -110,7 +108,7 @@ class DiscStep(APTStep):
 
 
 class RecStep(APTStep):
-    """Python class for Reconnaissance steps, it allows to build custom reconnaissance steps"""
+    """Python class for Reconnaissance steps, it allows to build custom reconnaissance steps by providing corresponding """
 
     def __init__(self, hostname: Optional[str], commands: str, pause: float = 1) -> None:
         super().__init__(hostname, pause)
@@ -231,7 +229,8 @@ class MqttCatDiscStep(DiscStep):
 
 
 class BruteForceStep(APTStep):
-    """Python class implementing the brute forcing of an ssh login, this step already implements a nmap ping scanning to discover active hosts to brute force"""
+    """Python class implementing the brute forcing of an ssh login.
+     This step already implements a nmap ping scanning to discover active hosts to brute force"""
 
     def __init__(self, pause: float = 1, is_distributed: bool = False, action: Literal["m", "t"] = "m",
                  host: Optional[str] = None):
@@ -505,7 +504,7 @@ class APTAttack:
         Parameters
         ----------
         n_iterations: int
-            how many times the entire sequence of steps will be repeated in the attack
+            how many times the entire sequence of steps will be repeated
 
         Returns
         -------
@@ -538,7 +537,7 @@ class APTAttack:
         Parameters
         ----------
         file_path: str
-            the path of the file to save the results
+            the path of the file where results are saved
         """
         if file_path is None:
             file_path = self.file_path_i

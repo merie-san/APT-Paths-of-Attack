@@ -5,13 +5,16 @@ import time
 from typing import Literal, Optional
 import nmap
 import subprocess as sp
-import pymetasploit3
 from pymetasploit3.msfrpc import MsfRpcClient
 
 
 class Daemon:
     def __init__(self, process: sp.Popen = None):
         self.daemon = process
+
+    def terminate(self):
+        if self.daemon:
+            daemon.terminate()
 
 
 def get_valid_users(metasploit_output):
@@ -64,7 +67,7 @@ def get_user_password_pair(hydra_output):
     return pass_dict
 
 
-def main(target_every_machines: bool, daemon: Daemon, attack_type: Literal["t", "m"] = "m",
+def main(target_every_machines: bool, daemon_obj: Daemon, attack_type: Literal["t", "m"] = "m",
          preferred_host: Optional[str] = None):
     print('\nnew session\n')
     with open('./out.log', 'a') as log:
@@ -114,17 +117,17 @@ def main(target_every_machines: bool, daemon: Daemon, attack_type: Literal["t", 
     # depending on the target_every_machine bool we try to crack the passwords for every running host or not
     if targets:
         if target_every_machines:
-            crack_ssh_password(targets, attack_type, daemon)
+            crack_ssh_password(targets, attack_type, daemon_obj)
         else:
             if preferred_host and preferred_host in targets:
-                crack_ssh_password([preferred_host], attack_type, daemon)
+                crack_ssh_password([preferred_host], attack_type, daemon_obj)
             else:
-                crack_ssh_password([random.choice(targets)], attack_type, daemon)
+                crack_ssh_password([random.choice(targets)], attack_type, daemon_obj)
     else:
         print("No targets found")
 
 
-def crack_ssh_password(targets, attack_type, daemon):
+def crack_ssh_password(targets, attack_type, daemon_obj):
     if attack_type == 't':
         action = 'Timing Attack'
         print("Using timing attack...")
@@ -150,9 +153,9 @@ def crack_ssh_password(targets, attack_type, daemon):
             client = MsfRpcClient('10000', ssl=True)
         except socket.error as err1:
             print(f"Socket error occurred: {err1}")
-            print("Trying to start a new msfrpc deamon...")
+            print("Trying to start a new msfrpc daemon...")
             # we use the subprocess module to execute the command on the background without waiting for its results
-            daemon.daemon = sp.Popen(f'msfrpcd -P 10000', shell=True)
+            daemon_obj.daemon = sp.Popen(f'msfrpcd -P 10000', shell=True)
             # we wait 3 seconds before trying to connect to the rpc server
             print('waiting for the rpc server to open up...')
             for i in range(30):
@@ -161,8 +164,7 @@ def crack_ssh_password(targets, attack_type, daemon):
             client = MsfRpcClient('10000', ssl=True)
         except Exception as err2:
             print(f"unexpected error: {err2}")
-            if daemon.daemon:
-                daemon.daemon.terminate()
+            daemon_obj.terminate()
             return
 
         # we set the module, the target of the attack, the usernames to test with etc...
@@ -204,8 +206,7 @@ def crack_ssh_password(targets, attack_type, daemon):
                 print(errs)
                 log.write(errs)
         client.logout()
-    if daemon.daemon:
-        daemon.daemon.terminate()
+    daemon_obj.terminate()
 
 
 if __name__ == '__main__':
@@ -223,5 +224,7 @@ if __name__ == '__main__':
     try:
         main(args.distributed, daemon, args.action, args.host)
     except KeyboardInterrupt:
-        if daemon.daemon:
-            daemon.daemon.terminate()
+        daemon.terminate()
+    except Exception as err:
+        print(f"unexpected error: {err}")
+        daemon.terminate()
