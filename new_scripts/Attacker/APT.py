@@ -520,8 +520,8 @@ class APTAttack:
                     else:
                         repetitions = step[1]
                     for j in range(repetitions):
-                        list_exp_Dict = step[0].run_step(step_number, self.attack_name, i)
-                        for exp in list_exp_Dict:
+                        list_exp_dict = step[0].run_step(step_number, self.attack_name, i)
+                        for exp in list_exp_dict:
                             if exp:
                                 self.exp_details.append(exp)
                         step_number += 1
@@ -529,6 +529,7 @@ class APTAttack:
         except KeyboardInterrupt:
             with open(self.file_path_i, "wb") as file:
                 pickle.dump(self.exp_details, file)
+            return self.exp_details
 
     def save_in(self, file_path: str = None):
         """
