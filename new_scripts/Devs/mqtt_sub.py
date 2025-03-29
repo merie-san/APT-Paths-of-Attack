@@ -32,7 +32,7 @@ def main():
             return
         connection1 = util.Connection_status()
         # Initialize MQTT client
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, protocol=mqtt.MQTTv5,
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, protocol=mqtt.MQTTv311,
                              userdata={"connection": connection1})
         # client.username_pw_set("#", "your_password")  # Replace with the wildcard user's password
         client.on_connect = util.on_connect
@@ -64,10 +64,11 @@ def main():
         a_password = "pass123"
         reconnect_delay = 10
         # send message to $CONTROL/dynamic-security/v1 topic to change ACLs for client1
-        print("Connecting to broker as admin to add roleClient4 for client1...", flush=True)
+        print("Connecting to broker as admin to add acls for client1...", flush=True)
         not_reachable = True
         while not_reachable:
-            admin_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={"connection": a_connection})
+            admin_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={"connection": a_connection},
+                                       protocol=mqtt.MQTTv311)
             admin_client.username_pw_set(a_username, a_password)
             admin_client.on_connect = util.on_connect
             admin_client.on_disconnect = util.on_disconnect
@@ -77,7 +78,7 @@ def main():
                     "Sending admin message to add new ACLs for client1...", flush=True)
                 admin_client.publish("$CONTROL/dynamic-security/v1",
                                      '{"commands": [{"command": "addRoleACL", "rolename": "roleClient1", "acltype": "subscribePattern", \
-                                     "topic": "#", "priority": 1, "allow": true}]}')
+                                     "topic": "Building4/#", "priority": 1, "allow": true}]}')
 
                 time.sleep(3)
                 not_reachable = False
@@ -89,20 +90,17 @@ def main():
 
             # initialize the durable client
             client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={"connection": connection},
-                                 protocol=mqtt.MQTTv5, client_id="durable_client")
+                                 protocol=mqtt.MQTTv311, client_id="durable_client", clean_session=False)
             client.username_pw_set("client1", "pass1")
             client.on_connect = util.on_connect
             client.on_subscribe = util.on_subscribe
             client.on_unsubscribe = util.on_unsubscribe
             client.on_message = on_message
             client.on_disconnect = util.on_disconnect
-            properties = mqtt.Properties(mqtt.PacketTypes.CONNECT)
-            properties.SessionExpiryInterval = 10000
 
             # connect the durable client to the broker
             print("Connecting client1 to the broker...", flush=True)
-            if util.connect_client(client, connection, reconnect_delay, input_clean_start=False,
-                                   input_properties=properties):
+            if util.connect_client_v3(client, connection, reconnect_delay):
 
                 # the durable clients subscribes to the desired topics and then disconnects
                 print("Subscribing client1 to every accessible topic...", flush=True)
@@ -121,7 +119,7 @@ def main():
                 print(
                     "Sending admin message to remove the newly added ACLs for client1...", flush=True)
                 admin_client.publish("$CONTROL/dynamic-security/v1",
-                                     '{"commands": [{"command": "removeRoleACL", "rolename": "roleClient1", "acltype": "subscribePattern", "topic": "#"}]}')
+                                     '{"commands": [{"command": "removeRoleACL", "rolename": "roleClient1", "acltype": "subscribePattern", "topic": "Building4/#"}]}')
                 time.sleep(3)
                 print("Disconnecting admin...", flush=True)
                 admin_client.disconnect()
@@ -130,8 +128,7 @@ def main():
                 # reconnect the durable client
                 while True:
                     print("Reconnecting client1 to the broker...", flush=True)
-                    if util.connect_client(client, connection, reconnect_delay, input_clean_start=False,
-                                           input_properties=properties):
+                    if util.connect_client_v3(client, connection, reconnect_delay):
                         print("Beginning to process messages", flush=True)
                         # remove the previous dynsec command or change it to not affect the client and add subscribe to restricted_topic if mosquitto version is not affected by vulnerability
                         time.sleep(1000)

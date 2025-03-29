@@ -60,12 +60,22 @@ COPY ./ssh_auto_access.py /
 #COPY ./apt_slash_char.py /
 #COPY ./apts.py /
 #COPY ./apt_data_exfiltration_sub.py /
-#COPY ./normal_ssh.py /
-COPY ./ssh_brute_force.py /
-COPY ./less_passwords.txt /
-COPY ./namelist.txt /
-COPY ./APT.py /
-COPY ./example_APT_usage.py /
+COPY ssh_brute_force.py /
+COPY passwords.txt /
+COPY namelist.txt /
+COPY APT.py /
+COPY example_APT_usage.py /
+COPY test_attacks.py /
+COPY user_prop_ddos_campaign_train.py /
+COPY user_prop_ddos_campaign_test.py /
+COPY empty_connection_dos.py /
+COPY dollar_char_attack.py /
+COPY zero_len_attack.py /
+COPY slash_char_attack.py /
+COPY user_property_attack.py /
+COPY mqtt_utilities.py /
+COPY qos_mid_dos.py /
+COPY pub_exfiltration.py /
 RUN pip3 install paramiko
 RUN pip3 install pytz
 RUN pip3 install paho-mqtt 

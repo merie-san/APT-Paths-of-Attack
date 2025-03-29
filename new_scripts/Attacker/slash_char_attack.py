@@ -26,7 +26,7 @@ def main(username, password, duration=10):
     while True:
 
         client = mqtt.Client(
-            mqtt.CallbackAPIVersion.VERSION2, userdata={"connection":connection}, protocol=mqtt.MQTTv5)
+            mqtt.CallbackAPIVersion.VERSION2, userdata={"connection":connection}, protocol=mqtt.MQTTv311)
         client.username_pw_set(username, password)
         client.on_connect = util.on_connect
         client.on_disconnect = util.on_disconnect

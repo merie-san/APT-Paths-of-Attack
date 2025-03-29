@@ -2,7 +2,7 @@
 /usr/sbin/sshd
 
 nohup python3 /mqtt_sub.py > /sub_output 2>&1 &
-nohup python3 /mqtt_pub.py > /pub_output 2>&1 &
+#nohup python3 /mqtt_pub.py > /pub_output 2>&1 &
 
 
 # loop until we have IP
