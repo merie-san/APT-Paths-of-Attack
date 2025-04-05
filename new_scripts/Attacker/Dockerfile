@@ -49,17 +49,6 @@ RUN chmod +x /prep.sh /dns.py /dhcp.py /cnc /db.sql
 RUN mv -t /home/ /prep.sh /dns.py /dhcp.py /cnc
 
 COPY ./ssh_auto_access.py /
-#COPY ./apt_empty_connection_dos.py /
-#COPY ./apt_zero_len.py /
-#COPY ./apt_dollar_char.py /
-#COPY ./apt_qos_mid_dos.py /
-#COPY ./apt_empty_connection_ddos.py /
-#COPY ./apt_empty_connection_dos_stealth.py /
-#COPY ./apt_user_property_dos.py /
-#COPY ./apt_user_property_ddos.py /
-#COPY ./apt_slash_char.py /
-#COPY ./apts.py /
-#COPY ./apt_data_exfiltration_sub.py /
 COPY ssh_brute_force.py /
 COPY passwords.txt /
 COPY namelist.txt /

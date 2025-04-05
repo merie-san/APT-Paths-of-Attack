@@ -22,11 +22,11 @@ def show_progress(transferred_bytes: int, total_bytes: int) -> None:
 
 class APTPhase(Enum):
     """Enum representing APT phases"""
-    RECONNAISSANCE = 1,
-    BRUTE_FORCE = 2,
-    INSTALLATION = 3,
-    DISCOVERY = 4,
-    EXPLOIT = 5,
+    RECONNAISSANCE = 1
+    BRUTE_FORCE = 2
+    INSTALLATION = 3
+    DISCOVERY = 4
+    EXPLOIT = 5
     PAUSE = -1
 
 
@@ -478,7 +478,7 @@ class PubExfExploit(ExploitStep):
         cmd_topics = " ".join(self.topics)
         ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
                          [
-                             f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -n {self.exf_file} -t {cmd_topics}"],
+                             f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -f {self.exf_file} -t {cmd_topics}"],
                          0, 0, "./out.log")
 
 
@@ -616,7 +616,7 @@ class APTAttack:
         self.attack_name = attack_name
         self.exp_details = exp_details
         self.file_path_i = file_path_i
-        self.step_n = 0
+        self.step_n = 1
 
     def run(self, n_iterations: int = 1, starting_step_number: int = 1) -> List[Dict]:
         """
@@ -635,8 +635,8 @@ class APTAttack:
             the updated experiment details List
         """
         try:
+            self.step_n = starting_step_number
             for i in range(n_iterations):
-                self.step_n = starting_step_number
                 for step in self.steps:
                     if len(step) < 2:
                         repetitions = 1

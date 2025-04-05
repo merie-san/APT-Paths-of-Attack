@@ -9,8 +9,8 @@ import json
 # MQTT Broker Details
 BROKER_HOST = "10.0.0.1"
 BROKER_PORT = 1883
-USERNAME = "client1"
-PASSWORD = "pass1"
+USERNAME = "root"
+PASSWORD = "root"
 RECONNECT_DELAY = 10  # Delay in seconds between reconnection attempts
 
 
@@ -106,7 +106,6 @@ def setup_client():
     Setup and configure the MQTT client.
     """
     client = mqtt.Client(protocol=mqtt.MQTTv311)
-    #client._protocol = mqtt.MQTTv5
     client.username_pw_set(USERNAME, PASSWORD)
     return client
 

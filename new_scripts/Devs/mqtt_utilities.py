@@ -1,14 +1,8 @@
 import time
 import sys
 import socket
-import random
 import subprocess
-
-
-class Connection_status:
-    def __init__(self) -> None:
-        self.connected = False
-
+from typing import List, Optional
 
 broker = "10.0.0.1"
 port = 1883
@@ -43,132 +37,87 @@ TOPIC_MAP = {
 
 def on_publish(client, userdata, mid, reason_code, properties):
     if reason_code == 0:
-        print("Broker received the message.\tReason code: " +
-              str(reason_code), flush=True)
+        print(f"Broker received the message with mid {mid}.\tReason code: {reason_code}", flush=True)
     else:
-        print("Broker didn't receive the message.\tReason code: " +
-              str(reason_code), flush=True)
+        print(f"Broker didn't receive the message with mid {mid}.\tReason code: {reason_code}", flush=True)
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
-        print("Connected successfully.\tReason code: " +
-              str(reason_code) + "\tSession present: " + str(flags.session_present), flush=True)
-        userdata["connection"].connected = True
+        print(f"Connected successfully.\tReason code: {reason_code}\tSession present: {flags.session_present}",
+              flush=True)
     else:
-        print("Connection failed.\tReason code: " +
-              str(reason_code), flush=True)
-        userdata["connection"].connected = False
+        print(f"Connection failed.\tReason code: {reason_code}", flush=True)
 
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
-    userdata["connection"].connected = False
     if reason_code == 0:
-        print("Disconnected from broker")
+        print("Disconnected correctly from broker")
     else:
         print("Disconnected due to unexpected errors")
 
 
-def connect_client_v3(client, connection, reconnect_delay):
+def connect_client_v3(client, reconnection_delay=5, timeout=300):
     start_time = time.time()
     while True:
         try:
             print(f"Attempting to connect to {broker}:{port}...", flush=True)
             client.connect(broker, port)
+            print("successfully connected to the broker", flush=True)
             client.loop_start()
-            while not connection.connected:
-                time.sleep(2)
-                time_elapsed = time.time() - start_time
-                print("Time waited: " + str(time_elapsed), flush=True)
-                if time_elapsed >= 20:
-                    client.loop_stop()
-                    print("Failed to connect due to broker's refusal", flush=True)
-                    return False
-            else:
-                print("Connected to broker")
-                return True
+            return True
         except (socket.error, Exception) as e:
-            print(f"Failed to connect to the broker: {e}", file=sys.stderr, flush=True)
-            time_elapsed = time.time() - start_time
-            if time_elapsed >= 20:
-                print("Timed out", flush=True)
-                return False
-            else:
-                print(
-                    f"Retrying connection in {reconnect_delay} seconds...", flush=True)
-                time.sleep(reconnect_delay)
+            print(f"Failed to connect to the broker, exception: {e}", flush=True)
+        time_elapsed = time.time() - start_time
+        if time_elapsed >= timeout:
+            print("Timed out" + str(time_elapsed), flush=True)
+            return False
+        else:
+            print(
+                f"Retrying connection in {reconnection_delay} seconds...", flush=True)
+            time.sleep(reconnection_delay)
 
 
-def connect_client(client, connection, reconnect_delay, input_clean_start=3, input_properties=None):
+def connect_client(client, input_clean_start=3, input_properties=None, reconnection_delay=5, timeout=300):
     start_time = time.time()
     while True:
         try:
             print(f"Attempting to connect to {broker}:{port}...", flush=True)
             client.connect(broker, port, clean_start=input_clean_start,
                            properties=input_properties)
+            print("successfully connected to the broker")
             client.loop_start()
-            while not connection.connected:
-                time.sleep(2)
-                time_elapsed = time.time() - start_time
-                print("Time waited: " + str(time_elapsed), flush=True)
-                if time_elapsed >= 20:
-                    client.loop_stop()
-                    print("Failed to connect due to broker's refusal", flush=True)
-                    return False
-            else:
-                print("Connected to broker")
-                return True
+            return True
         except (socket.error, Exception) as e:
             print(
-                f"Failed to connect to the broker: {e}", file=sys.stderr, flush=True)
-            time_elapsed = time.time() - start_time
-            if time_elapsed >= 20:
-                print("Timed out", flush=True)
-                return False
-            else:
-                print(
-                    f"Retrying connection in {reconnect_delay} seconds...", flush=True)
-                time.sleep(reconnect_delay)
-
-
-def spam_messages(client, topic, span=2, prefix="spam", fixed_span=False, ip_address="", qos=0):
-    interval = span
-    while True:
-        try:
-            message = f"{prefix.title()} at {time.strftime('%Y-%m-%d %H:%M:%S')} from {ip_address}"
-            client.publish(topic, message, qos=qos)
-            print(f"Sent: {message}", flush=True)
-            if not fixed_span:
-                interval = random.random() * span
-            time.sleep(interval)
-        except socket.error as e:
+                f"Failed to connect to the broker, exception: {e}", flush=True)
+        time_elapsed = time.time() - start_time
+        if time_elapsed >= timeout:
+            print("Timed out" + str(time_elapsed), flush=True)
+            return False
+        else:
             print(
-                f"Network error occurred while publishing on {ip_address}: {e}", file=sys.stderr)
-            client.disconnect()
-            return
-        except Exception as e:
-            print(
-                f"Unexpected error occurred while publishing on {ip_address}: {e}", file=sys.stderr)
-            client.disconnect()
-            return
+                f"Retrying connection in {reconnection_delay} seconds...", flush=True)
+            time.sleep(reconnection_delay)
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
     if reason_code_list[0].is_failure:
         print(
-            f"Broker rejected your subscription: {reason_code_list[0]}", flush=True)
+            f"Broker rejected your subscription request with mid {mid}, reason code: {reason_code_list[0]}", flush=True)
     else:
         print(
-            f"Broker granted the following QoS to your subscription request: {reason_code_list[0].value}", flush=True)
+            f"Broker accepted your subscription request with mid {mid}, granting it a qos of {reason_code_list[0].value}",
+            flush=True)
 
 
 def on_unsubscribe(client, userdata, mid, reason_code_list, properties):
     if len(reason_code_list) == 0 or not reason_code_list[0].is_failure:
-        print("unsubscribe succeeded", flush=True)
+        print(f"unsubscribe request with mid {mid} succeeded", flush=True)
     else:
         print(
-            f"Broker replied with failure: {reason_code_list[0]}", flush=True)
-    client.disconnect()
+            f"Broker replied with failure to the unsubscribe request with mid {mid}, reason code: {reason_code_list[0]}",
+            flush=True)
 
 
 def get_ip():
@@ -188,9 +137,12 @@ def get_ip():
     return None
 
 
-def get_accessible_topics(username: str) -> list[str]:
+def get_accessible_topics(username: str) -> Optional[List[str]]:
     if username == 'root':
-        return TOPIC_MAP.values()
+        result = []
+        for value in TOPIC_MAP.values():
+            result += value
+        return result
     elif username == 'client1':
         return TOPIC_MAP['10.0.0.20']
     elif username == 'client2':
@@ -199,3 +151,5 @@ def get_accessible_topics(username: str) -> list[str]:
         return TOPIC_MAP['10.0.0.22']
     elif username == 'client4':
         return TOPIC_MAP['10.0.0.23']
+    else:
+        return None
