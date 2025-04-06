@@ -1,7 +1,6 @@
 import argparse
 import random
 import socket
-
 import paho.mqtt.client as mqtt
 import mqtt_utilities as util
 import time

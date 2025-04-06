@@ -1,9 +1,10 @@
+import errno
+import socket
+
 import paramiko
 import argparse
 import time
 import random
-
-from mypyc.primitives.exc_ops import keep_propagating_op
 
 
 def execute_command(client, command, password):
@@ -15,6 +16,35 @@ def execute_command(client, command, password):
     if "sudo" in command:
         stdin.write(password + "\n")  # Send the password
         stdin.flush()  # Ensure the command is sent
+
+    times = 0
+    connection_lost = False
+
+    while not stdout.channel.exit_status_ready():
+        times += 1
+        time.sleep(1)
+        if times >= 60:
+            print("Checking network connection...", flush=True)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                sock.connect(("10.0.0.1", 1183))
+                print("Socket connection established successfully, network is healthy", flush=True)
+            except  socket.timeout as e1:
+                print(f"Socket connection failed: {e1}", flush=True)
+                connection_lost = True
+            except socket.error as e2:
+                if e2.errno == errno.ENETUNREACH or e2.errno == errno.EHOSTUNREACH:
+                    connection_lost = True
+                    print(f"Socket connection failed: {e2}", flush=True)
+                if e2.errno == errno.ECONNREFUSED:
+                    print(f"Socket Connection attempt was refused, network is healthy: {e2}", flush=True)
+            except Exception as e:
+                print(f"Socket connection failed: {e}", flush=True)
+            finally:
+                sock.close()
+                times = 0
+        if connection_lost:
+            return 1, "", "Connection lost while running the command"
 
     # Wait for the command to finish and capture the output
     exit_status = stdout.channel.recv_exit_status()  # This will block until the command finishes
@@ -28,7 +58,6 @@ def execute_command(client, command, password):
 def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait_time, logfile):
     # Create an SSH client
     client = paramiko.SSHClient()
-    client.get_transport().set_keepalive(60)
     # Automatically add untrusted hosts (make sure okay for your use case)
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -36,6 +65,7 @@ def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait
         # Connect to the host
         client.connect(hostname, port=22, username=username, password=password, timeout=60)
         print(f"Connected to {hostname}")
+        client.get_transport().set_keepalive(60)
 
         with open(logfile, 'w') as log:
             # Execute each command
@@ -61,6 +91,9 @@ def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait
                 wait_time = random.randint(inf_wait_time, sup_wait_time)
                 print(f"Waiting for {wait_time} seconds before next command.")
                 time.sleep(wait_time)
+
+    except (Exception, socket.error) as e:
+        print(f"Error during SSH connection: {e}", flush=True)
 
     finally:
         # Close the connection
