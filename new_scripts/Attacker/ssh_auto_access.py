@@ -28,6 +28,7 @@ def execute_command(client, command, password):
 def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait_time, logfile):
     # Create an SSH client
     client = paramiko.SSHClient()
+    client.get_transport().set_keepalive(60)
     # Automatically add untrusted hosts (make sure okay for your use case)
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 

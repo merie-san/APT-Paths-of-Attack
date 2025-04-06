@@ -12,8 +12,8 @@ step_seq = [(NetstatRecStep(5), 10), (Nmap192T4RecStep(10), 2), (Nmap192T5RecSte
             (ScpInstStep("10.0.0.7", ["/user_property_attack.py", "/mqtt_utilities.py"], pause=10), 1),
             (ScpInstStep("10.0.0.8", ["/user_property_attack.py", "/mqtt_utilities.py"], pause=10), 1),
             (ScpInstStep("10.0.0.9", ["/user_property_attack.py", "/mqtt_utilities.py"], pause=10), 1),
-            (DistributedExploit(["10.0.0.4", "10.0.0.5", "10.0.0.7", "10.0.0.6", "10.0.0.8", "10.0.0.9"], 8,
-                                UserPropExploit("", "client1", "pass1", duration=3000, number=6000, pause=2)), 2),
+            (DistributedExploit(["10.0.0.4", "10.0.0.5", "10.0.0.7", "10.0.0.6", "10.0.0.8", "10.0.0.9"], 4,
+                                UserPropExploit("", "client1", "pass1", duration=3000, number=4000, pause=2)), 2),
             (PauseStep(60), 2),
             (ScpInstStep("10.0.0.15", ["/user_property_attack.py", "/mqtt_utilities.py"], pause=15), 1),
             (UserPropExploit("10.0.0.15", "client2", "pass2", number=100, duration=180, pause=5), 20)
