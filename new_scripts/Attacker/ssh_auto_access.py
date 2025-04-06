@@ -3,6 +3,8 @@ import argparse
 import time
 import random
 
+from mypyc.primitives.exc_ops import keep_propagating_op
+
 
 def execute_command(client, command, password):
     """Execute a command on the remote server, handling sudo prompts."""
@@ -31,7 +33,7 @@ def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait
 
     try:
         # Connect to the host
-        client.connect(hostname, port=22, username=username, password=password)
+        client.connect(hostname, port=22, username=username, password=password, timeout=60)
         print(f"Connected to {hostname}")
 
         with open(logfile, 'w') as log:
