@@ -167,9 +167,10 @@ class PauseStep(APTStep):
         return APTPhase.PAUSE
 
     def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+        start_time = datetime.now(tz=pytz.UTC)
         print("Pausing execution...")
         time.sleep(random.random() * self.long_pause)
-        return [{}]
+        return [self._build_results(step_number, attack_name, start_time, iteration)]
 
 
 class DiscStep(APTStep):
@@ -581,13 +582,17 @@ class DistributedExploit(APTStep):
                         self.results_queue[0].put(result)
 
             threads.append(threading.Thread(parallel_exploit(exploit, step_number, attack_name, iteration)))
+        print(f"Running distributed exploit...")
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
+        print(f"Completed running distributed exploit")
         with self.results_queue[1]:
             while not self.results_queue[0].empty():
-                results += self.results_queue[0].get()
+                res_dict = self.results_queue[0].get()
+                res_dict[0]["command"] = self.get_step_name()
+                results += res_dict
         return results
 
     def get_phase(self) -> APTPhase:
