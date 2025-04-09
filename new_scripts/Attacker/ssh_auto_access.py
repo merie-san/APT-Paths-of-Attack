@@ -23,7 +23,7 @@ def execute_command(client, command, password):
     while not stdout.channel.exit_status_ready():
         times += 1
         time.sleep(1)
-        if times >= 60:
+        if times >= 300:
             print("Checking network connection...", flush=True)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
@@ -37,14 +37,14 @@ def execute_command(client, command, password):
                     connection_lost = True
                     print(f"Socket connection failed: {e2}", flush=True)
                 if e2.errno == errno.ECONNREFUSED:
-                    print(f"Socket Connection attempt was refused, network is healthy: {e2}", flush=True)
+                    print(f"Socket Connection request was refused, network is healthy: {e2}", flush=True)
             except Exception as e:
                 print(f"Socket connection failed: {e}", flush=True)
             finally:
                 sock.close()
                 times = 0
         if connection_lost:
-            return 1, "", "Connection lost while running the command"
+            return 1, "", f"Connection lost while running the command {command}"
 
     # Wait for the command to finish and capture the output
     exit_status = stdout.channel.recv_exit_status()  # This will block until the command finishes

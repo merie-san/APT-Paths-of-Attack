@@ -114,6 +114,9 @@ def main(target_every_machines: bool, daemon_obj: Daemon, attack_type: Literal["
     if "10.0.0.2" in targets:
         targets.remove("10.0.0.2")
 
+    if "10.0.0.3" in targets:
+        targets.remove("10.0.0.3")
+
     # depending on the target_every_machine bool we try to crack the passwords for every running host or not
     if targets:
         if target_every_machines:

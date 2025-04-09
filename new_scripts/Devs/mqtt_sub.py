@@ -45,7 +45,9 @@ def main():
                 client.subscribe(topic, qos=2)
                 print(f"Subscribed to topic: {topic}", flush=True)
             print("Beginning to process messages", flush=True)
-            time.sleep(1000)
+            while True:
+                print("Processing messages...", flush=True)
+                time.sleep(10)
         else:
             print(f"Timed out when trying to connect to the broker", flush=True)
 
@@ -116,7 +118,9 @@ def main():
             if util.connect_client_v3(client, reconnection_delay=reconnect_delay):
                 print("Beginning to process messages", flush=True)
                 # remove the previous dynsec command or change it to not affect the client and add subscribe to restricted_topic if mosquitto version is not affected by vulnerability
-                time.sleep(1000)
+                while True:
+                    print("Processing messages...", flush=True)
+                    time.sleep(10)
             else:
                 print(
                     "Timed out when reconnecting client1 to the broker", flush=True)

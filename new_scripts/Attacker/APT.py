@@ -8,16 +8,10 @@ import copy
 from datetime import datetime
 from enum import Enum
 from abc import ABC, abstractmethod
-from queue import Queue
 import paramiko
 import pytz
 import ssh_auto_access as ssh
 from typing import Optional, List, Dict, Tuple, Literal
-
-
-def show_progress(transferred_bytes: int, total_bytes: int) -> None:
-    """Callback method to show progress on file transfer with SFTP"""
-    print(f"Transfer progress: {transferred_bytes}/{total_bytes}", flush=True)
 
 
 class APTPhase(Enum):
@@ -47,7 +41,7 @@ class APTStep(ABC):
         pass
 
     @abstractmethod
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         pass
 
     def set_pause(self, pause: float) -> None:
@@ -96,14 +90,19 @@ class InstStep(APTStep, ABC):
     def install(self) -> None:
         pass
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         print(f"Installing scripts with {self.get_step_name()} on {self.hostname}...")
         self.install()
         print(f"Completed installing exploit scripts on {self.hostname}")
         result = self._build_results(step_number, attack_name, start_time, iteration)
         time.sleep(random.random() * self.pause)
-        return [result]
+        return result
+
+
+def show_progress(transferred_bytes: int, total_bytes: int) -> None:
+    """Callback method to show progress on file transfer with SFTP"""
+    print(f"Transfer progress: {transferred_bytes}/{total_bytes}", flush=True)
 
 
 class ScpInstStep(InstStep):
@@ -166,11 +165,11 @@ class PauseStep(APTStep):
     def get_phase(self) -> APTPhase:
         return APTPhase.PAUSE
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         print("Pausing execution...")
         time.sleep(random.random() * self.long_pause)
-        return [self._build_results(step_number, attack_name, start_time, iteration)]
+        return self._build_results(step_number, attack_name, start_time, iteration)
 
 
 class DiscStep(APTStep):
@@ -186,10 +185,10 @@ class DiscStep(APTStep):
     def get_step_name(self) -> str:
         return self.commands[0].split()[0]
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password, self.commands, 0, self.pause, "./out.log")
-        return [super()._build_results(step_number, attack_name, start_time, iteration)]
+        return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_phase(self) -> APTPhase:
         return APTPhase.DISCOVERY
@@ -205,12 +204,12 @@ class RecStep(APTStep):
     def get_step_name(self) -> str:
         return self.commands[0].split()[0]
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         for command in self.commands:
             print(f"Executing command - {command}...")
             os.system(command + " | tee -a ./out.log")
-        return [super()._build_results(step_number, attack_name, start_time, iteration)]
+        return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_phase(self) -> APTPhase:
         return APTPhase.RECONNAISSANCE
@@ -330,7 +329,7 @@ class BruteForceStep(APTStep):
     def get_phase(self) -> APTPhase:
         return APTPhase.BRUTE_FORCE
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         if self.is_distributed:
             cmd_flag = "-d"
@@ -340,7 +339,7 @@ class BruteForceStep(APTStep):
             os.system(f"python3 ssh_brute_force.py {cmd_flag} -a {self.action} --host {self.host}")
         else:
             os.system(f"python3 ssh_brute_force.py {cmd_flag} -a {self.action}")
-        return [super()._build_results(step_number, attack_name, start_time, iteration)]
+        return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_step_name(self) -> str:
         return "brute_force"
@@ -368,14 +367,14 @@ class ExploitStep(APTStep, ABC):
     def run_exploit(self) -> None:
         pass
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
         print(f"Running exploit {self.get_step_name()}...")
         self.run_exploit()
         print(f"Completed running exploit {self.get_step_name()}")
         result = self._build_results(step_number, attack_name, start_time, iteration)
         time.sleep(random.random() * self.pause)
-        return [result]
+        return result
 
 
 class ScpExfExploit(ExploitStep):
@@ -556,44 +555,40 @@ class ZeroLenExploit(ExploitStep):
 class DistributedExploit(APTStep):
     """Python class which builds a distributed attack from an instance of type ExploitStep"""
 
-    def __init__(self, host_list: List[str], number_of_instances: int, exploit: ExploitStep):
+    def __init__(self, host_list: List[str], number_of_instances: int, exploit: ExploitStep, pause: float = 1):
         if isinstance(exploit, DistributedExploit):
             raise ValueError("Cannot create a DistributedExploit from an instance of type DistributedExploit")
-        super().__init__(None, exploit.pause)
-        self.original_exploit = exploit
+        super().__init__(None, pause)
+        self.original_exploit_name = exploit.get_step_name()
         self.distributed_exploits = []
-        self.results_queue = (Queue(), threading.Lock())
         for i in range(number_of_instances):
             copy_exploit = copy.copy(exploit)
             copy_exploit.set_host(random.choice(host_list))
             self.distributed_exploits.append(copy_exploit)
 
     def get_step_name(self) -> str:
-        return f"{self.original_exploit.get_step_name()}_ddos"
+        return f"{self.original_exploit_name}_ddos"
 
-    def run_step(self, step_number: int, attack_name: str, iteration: int) -> List[Dict]:
+    def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
+        start_time = datetime.now(tz=pytz.UTC)
         threads = []
-        results = []
-        for exploit in self.distributed_exploits:
-            def parallel_exploit(p_exploit: ExploitStep, p_step_number: int, p_attack_name: str, p_iteration: int):
-                result = p_exploit.run_step(p_step_number, p_attack_name, p_iteration)
-                if result is not None:
-                    with self.results_queue[1]:
-                        self.results_queue[0].put(result)
+        print(f"Running exploit {self.get_step_name()}...")
 
+        def parallel_exploit(p_exploit: ExploitStep, p_step_number: int, p_attack_name: str, p_iteration: int):
+            p_exploit.run_step(p_step_number, p_attack_name, p_iteration)
+
+        for exploit in self.distributed_exploits:
             threads.append(threading.Thread(parallel_exploit(exploit, step_number, attack_name, iteration)))
-        print(f"Running distributed exploit...")
+
         for thread in threads:
             thread.start()
+
         for thread in threads:
             thread.join()
-        print(f"Completed running distributed exploit")
-        with self.results_queue[1]:
-            while not self.results_queue[0].empty():
-                res_dict = self.results_queue[0].get()
-                res_dict[0]["command"] = self.get_step_name()
-                results += res_dict
-        return results
+
+        print(f"Completed running exploit {self.get_step_name()}")
+        time.sleep(random.random() * self.pause)
+        return self._build_results(step_number, attack_name, start_time, iteration)
 
     def get_phase(self) -> APTPhase:
         return APTPhase.EXPLOIT
@@ -648,10 +643,8 @@ class APTAttack:
                     else:
                         repetitions = step[1]
                     for j in range(repetitions):
-                        list_exp_dict = step[0].run_step(self.step_n, self.attack_name, i)
-                        for exp in list_exp_dict:
-                            if exp:
-                                self.exp_details.append(exp)
+                        exp_dict = step[0].run_step(self.step_n, self.attack_name, i)
+                        self.exp_details.append(exp_dict)
                         self.step_n += 1
             return self.exp_details
         except KeyboardInterrupt:

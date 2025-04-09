@@ -59,6 +59,8 @@ COPY user_prop_ddos_campaign_train_scp_inst.py /
 COPY user_prop_ddos_campaign_test_scp_inst.py /
 COPY dollar_char_dos_campaign_train_scp_inst.py /
 COPY dollar_char_dos_campaign_test_scp_inst.py /
+COPY empty_conn_ddos_campaign_train_sftp_inst.py /
+COPY empty_conn_ddos_campaign_test_sftp_inst.py /
 COPY empty_connection_dos.py /
 COPY dollar_char_attack.py /
 COPY zero_len_attack.py /
