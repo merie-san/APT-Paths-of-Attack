@@ -17,6 +17,7 @@ def main(username, password, topics, file_name, duration=10):
     client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2, client_id="#", userdata=data_dict,
                          protocol=mqtt.MQTTv311)
     client.username_pw_set(username, password)
+    client.on_message = on_message
     client.on_connect = util.on_connect
     client.on_disconnect = util.on_disconnect
     client.on_subscribe = util.on_subscribe
@@ -40,27 +41,22 @@ def main(username, password, topics, file_name, duration=10):
                         tries += 1
                         sleep(10)
 
-        with open(file_name, "a") as f:
+        with open(file_name, "w") as f:
             f.write("Beginning to register data...\n")
     else:
         print(f"Broker not reachable, ending script...", flush=True)
         return
 
     elapsed_time = time.time() - start_time
-    empty_count = 0
     while elapsed_time < duration:
         with data_dict["lock"]:
             if data_dict["messages"]:
                 with open(file_name, "a") as f:
                     f.write(data_dict["messages"])
                 data_dict["messages"] = ""
-                empty_count = 0
             else:
-                empty_count += 1
-        if empty_count > 5:
-            client.disconnect()
-            print(f"Not receiving data from subscriber, script ending...", flush=True)
-            return
+                with open(file_name, "a") as f:
+                    f.write("No message received")
         time.sleep(60)
         elapsed_time = time.time() - start_time
     else:

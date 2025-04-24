@@ -6,6 +6,8 @@ import argparse
 import time
 import random
 
+from paramiko.ssh_exception import NoValidConnectionsError
+
 
 def execute_command(client, command, password):
     """Execute a command on the remote server, handling sudo prompts."""
@@ -23,23 +25,18 @@ def execute_command(client, command, password):
     while not stdout.channel.exit_status_ready():
         times += 1
         time.sleep(1)
-        if times >= 300:
+        if times >= 120:
             print("Checking network connection...", flush=True)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 sock.connect(("10.0.0.1", 1183))
                 print("Socket connection established successfully, network is healthy", flush=True)
-            except  socket.timeout as e1:
-                print(f"Socket connection failed: {e1}", flush=True)
-                connection_lost = True
             except socket.error as e2:
-                if e2.errno == errno.ENETUNREACH or e2.errno == errno.EHOSTUNREACH:
-                    connection_lost = True
-                    print(f"Socket connection failed: {e2}", flush=True)
                 if e2.errno == errno.ECONNREFUSED:
                     print(f"Socket Connection request was refused, network is healthy: {e2}", flush=True)
-            except Exception as e:
-                print(f"Socket connection failed: {e}", flush=True)
+                else:
+                    connection_lost = True
+                    print(f"Socket connection failed: {e2}", flush=True)
             finally:
                 sock.close()
                 times = 0
@@ -91,9 +88,6 @@ def ssh_commands(hostname, username, password, commands, inf_wait_time, sup_wait
                 wait_time = random.randint(inf_wait_time, sup_wait_time)
                 print(f"Waiting for {wait_time} seconds before next command.")
                 time.sleep(wait_time)
-
-    except (Exception, socket.error) as e:
-        print(f"Error during SSH connection: {e}", flush=True)
 
     finally:
         # Close the connection

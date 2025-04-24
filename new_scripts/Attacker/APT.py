@@ -2,6 +2,7 @@
 import os
 import pickle
 import random
+import socket
 import threading
 import time
 import copy
@@ -342,7 +343,13 @@ class BruteForceStep(APTStep):
         return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_step_name(self) -> str:
-        return "brute_force"
+        if self.action == 'm':
+            suffix = "_malformed"
+        else:
+            suffix = "_timing"
+        if self.is_distributed:
+            suffix += "_distributed"
+        return "brute_force" + suffix
 
 
 class ExploitStep(APTStep, ABC):
@@ -647,7 +654,8 @@ class APTAttack:
                         self.exp_details.append(exp_dict)
                         self.step_n += 1
             return self.exp_details
-        except KeyboardInterrupt:
+        except (socket.error, KeyboardInterrupt) as e:
+            print(f"Error when running attack steps: {e}, ending script...", flush=True)
             with open(self.file_path_i, "wb") as file:
                 pickle.dump(self.exp_details, file)
             return self.exp_details

@@ -61,6 +61,16 @@ COPY dollar_char_dos_campaign_train_scp_inst.py /
 COPY dollar_char_dos_campaign_test_scp_inst.py /
 COPY empty_conn_ddos_campaign_train_sftp_inst.py /
 COPY empty_conn_ddos_campaign_test_sftp_inst.py /
+COPY pub_exf_campaign_test_sftp.py /
+COPY pub_exf_campaign_train_sftp.py /
+COPY sub_exf_campaign_test_scp.py /
+COPY sub_exf_campaign_train_scp.py /
+COPY qos_mid_ddos_campaign_test_scp_inst.py /
+COPY qos_mid_ddos_campaign_train_scp_inst.py /
+COPY slash_char_dos_campaign_test_sftp_inst.py /
+COPY slash_char_dos_campaign_train_sftp_inst.py /
+COPY zero_len_dos_campaign_test_sftp_inst.py /
+COPY zero_len_dos_campaign_train_sftp_inst.py /
 COPY empty_connection_dos.py /
 COPY dollar_char_attack.py /
 COPY zero_len_attack.py /
