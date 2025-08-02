@@ -1,103 +1,992 @@
 from APT import *
 
-step_seq = [(NetstatRecStep(5), 3), (Nmap192T4RecStep(5), 4), (Nmap10T5RecStep(10), 5),
-            (BruteForceStep(5), 1), (NmapMQTTDiscStep("10.0.0.8", pause=8), 4),
-            (NmapBannerDiscStep("10.0.0.8", pause=16), 2), (MqttCatDiscStep("10.0.0.8", pause=20), 2),
-            (NmapSubDiscStep("10.0.0.8", pause=120), 2),
-            (SftpInstStep("10.0.0.8", ["/zero_len_attack.py", "/mqtt_utilities.py"], pause=31), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=60), 2),
-            (NetstatRecStep(5),), (PauseStep(30),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (NmapSubDiscStep("10.0.0.8", pause=80), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (NmapSubDiscStep("10.0.0.8", pause=80), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (NmapSubDiscStep("10.0.0.8", pause=80), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (NmapSubDiscStep("10.0.0.8", pause=80), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=10), 3),
-            (Nmap10T5RecStep(8),), (NmapMQTTDiscStep("10.0.0.8", pause=14),),
-            (NmapSubDiscStep("10.0.0.8", pause=80), 1),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=1), 5),
-            (NmapBannerDiscStep("10.0.0.8", pause=70),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=1), 5),
-            (NmapBannerDiscStep("10.0.0.8", pause=70),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=1), 5),
-            (NmapBannerDiscStep("10.0.0.8", pause=70),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=1), 5),
-            (NmapBannerDiscStep("10.0.0.8", pause=70),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=1), 5),
-            (NmapBannerDiscStep("10.0.0.8", pause=70),),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
-            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=1), 8),
-            (NmapBannerDiscStep("10.0.0.8", pause=80), 2), (MqttCatDiscStep("10.0.0.8", pause=100), 2),
+step_seq = [(NetstatRecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap192T4RecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap192T4RecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap192T4RecStep(0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0), 1
+             ), (PauseStep(10),),
+            (BruteForceStep(0), 1
+             ), (PauseStep(10),),
+            (NmapMQTTDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (SftpInstStep("10.0.0.8", ["/zero_len_attack.py", "/mqtt_utilities.py"], pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=60, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+                                   ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=120, pause=0), 1
+             ), (PauseStep(10),),
+            (NetstatRecStep(0),), (PauseStep(10),), (PauseStep(30),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=320, pause=0), 1
+             ), (PauseStep(10),),
+            (Nmap10T5RecStep(0),), (PauseStep(10),), (NmapMQTTDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (NmapSubDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=800, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0),), (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
+            (ZeroLenExploit("10.0.0.8", "client1", "pass1", duration=600, pause=0), 1
+             ), (PauseStep(10),),
+            (NmapBannerDiscStep("10.0.0.8", pause=0), 1
+             ), (PauseStep(10),), (MqttCatDiscStep("10.0.0.8", pause=0), 1
+                                   ),
+            (PauseStep(10),),
             ]
 exp_details = []
 atk = APTAttack(step_seq, "zero_len_dos_sftp_inst_cam_train", exp_details, "/output/experiment_details.pkl")
