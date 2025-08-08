@@ -1,5 +1,4 @@
 """Module to build and run customized APT attacks"""
-import math
 import os
 import pickle
 import random
@@ -965,7 +964,7 @@ class APTAttack:
         self.duration_std = duration_std
 
     def generate_duration(self, mean: float = 60) -> float:
-        return math.abs(random.gauss(mean, self.duration_std))
+        return abs(random.gauss(mean, self.duration_std))
 
     def run(self, n_iterations: int = 1, starting_step_number: int = 1) -> List[Dict]:
         """
