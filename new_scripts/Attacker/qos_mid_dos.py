@@ -37,7 +37,7 @@ def main(username, password, duration=10.0, number=100):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="launch an qos_mid_dos attack from the local machine")
-    parser.add_argument("-d", "--duration", type=int, help="duration in seconds")
+    parser.add_argument("-d", "--duration", type=float, help="duration in seconds")
     parser.add_argument("-u", "--username", type=str, help="username to connect as")
     parser.add_argument("-p", "--password", type=str, help="password to connect with")
     parser.add_argument("-n", "--number", type=int, help="number of messages to send")

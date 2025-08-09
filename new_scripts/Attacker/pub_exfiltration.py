@@ -67,7 +67,7 @@ def main(username, password, topics, file_name, duration=10):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='launch an exfiltration from a client exploiting an existing user with \# or + as name')
-    parser.add_argument("-d", "--duration", type=int, help="duration in seconds")
+    parser.add_argument("-d", "--duration", type=float, help="duration in seconds")
     parser.add_argument("-u", "--username", type=str, help="username")
     parser.add_argument("-p", "--password", type=str, help="password")
     parser.add_argument("-f", "--file-name", type=str, help="name for the file to gather exfiltrated data")

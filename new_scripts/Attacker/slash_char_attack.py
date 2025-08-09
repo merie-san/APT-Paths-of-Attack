@@ -47,7 +47,7 @@ def main(username, password, duration=10):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="launch a slash_char_dos attack from the local machine")
-    parser.add_argument("-d", "--duration", type=int, help="duration in seconds")
+    parser.add_argument("-d", "--duration", type=float, help="duration in seconds")
     parser.add_argument("-u", "--username", type=str, help="username to connect as")
     parser.add_argument("-p", "--password", type=str, help="password to connect with")
     args = parser.parse_args()
