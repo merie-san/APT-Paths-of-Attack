@@ -910,6 +910,7 @@ class DistributedExploit(APTStep):
             p_exploit.run_step(p_step_number, p_attack_name, p_iteration)
 
         for exploit in self.distributed_exploits:
+            exploit.set_attack(self.attack)
             threads.append(
                 threading.Thread(
                     parallel_exploit(exploit, step_number, attack_name, iteration)
