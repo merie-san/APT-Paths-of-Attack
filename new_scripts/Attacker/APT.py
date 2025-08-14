@@ -85,7 +85,7 @@ class InstStep(APTStep, ABC):
             dest_dir: str = "/home/ope",
             ssh_username: str = "ope",
             ssh_password: str = "maint",
-            pause: float = 0.0,
+            pause: float = 0,
     ):
         super().__init__(hostname, pause)
         if src_files is None:
@@ -137,7 +137,7 @@ class ScpInstStep(InstStep):
             dest_dir: str = "/home/ope",
             ssh_username: str = "ope",
             ssh_password: str = "maint",
-            pause: int = 5.0,
+            pause: float = 0,
     ):
         super().__init__(
             hostname, src_files, dest_dir, ssh_username, ssh_password, pause
@@ -163,7 +163,7 @@ class SftpInstStep(InstStep):
             dest_dir: str = "/home/ope",
             ssh_username: str = "ope",
             ssh_password: str = "maint",
-            pause: int = 5.0,
+            pause: float = 0,
     ):
         super().__init__(
             hostname, src_files, dest_dir, ssh_username, ssh_password, pause
@@ -486,7 +486,7 @@ class ExploitStep(APTStep, ABC):
             mean_duration: float = 10,
             pause: float = 0,
     ):
-        if mean_duration <= 0:
+        if mean_duration < 0:
             raise ValueError("mean_duration must be positive")
         super().__init__(hostname, pause)
         self.ssh_username = ssh_username
@@ -953,7 +953,7 @@ class APTAttack:
             attack_name: str,
             exp_details: List[Dict],
             file_path_i: str,
-            duration_std: int = 1,
+            duration_std: int = 10,
     ):
         self.steps = attack_steps
         for step in self.steps:
